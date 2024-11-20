@@ -74,16 +74,21 @@ if differences:
 else:
     print(f"{DATA_FILE_1} and {DATA_FILE_2} are the same")
 
+import _test
 
 def print_nodes_with_custom_c_function(data_tree: Optional[DNode]):
-    import _test
-
     for node in data_tree:
         node_cdata = _test.ffi.cast("struct lyd_node *", node.cdata) # don't mix with libyang-cffi?
         _test.lib.print_node(node_cdata)
 
+def print_all_nodes_in_tree_with_custom_c_function(data_tree: Optional[DNode]):
+    data_tree_cdata = _test.ffi.cast("struct lyd_node *", data_tree.cdata)
+    _test.lib.print_nodes_recursively(data_tree_cdata, _test.ffi.NULL)
+
 
 print('*', DATA_FILE_1)
-print_nodes_with_custom_c_function(data_tree_1)
+# print_nodes_with_custom_c_function(data_tree_1)
+print_all_nodes_in_tree_with_custom_c_function(data_tree_1)
 print('\n *', DATA_FILE_2)
-print_nodes_with_custom_c_function(data_tree_2)
+# print_nodes_with_custom_c_function(data_tree_2)
+print_all_nodes_in_tree_with_custom_c_function(data_tree_2)
