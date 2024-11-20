@@ -2,7 +2,7 @@ import libyang
 import os
 
 
-os.environ["YANGPATH"] = "/home/shivam/libyang-cffi-playground"
+os.environ["YANGPATH"] = "/home/shivam/libyang-cffi-playground/yang"
 
 ctx = libyang.Context()
 
@@ -20,7 +20,7 @@ for x in module:
         print(y)
 
 
-DATA_FILE = "example_data.json"
+DATA_FILE = "data/example_data.json"
 data_tree = ctx.parse_data_file(open(DATA_FILE, "r+"), fmt=DATA_FILE.split('.')[-1])
 print("** parse_data_file:", DATA_FILE)
 
