@@ -1,0 +1,9 @@
+{
+    "example:interface": {
+      "name": "TenGigabitEthernet1/2/3",
+      "subinterface": "321",
+      "shutdown": true,
+      "ipv4-address": "2.2.2.2",
+      "mtu": 1234
+    }
+}
