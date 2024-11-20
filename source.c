@@ -1,13 +1,13 @@
 #include <libyang/libyang.h>
 
 
-void print_nodes_recursively(struct lyd_node* node, char* xpath_prefix) {
-    char xpath[256];
-    const char *value;
+void print_nodes_recursively(struct lyd_node* node) {
+    char* xpath;
+    const char* value;
     struct lyd_node* child;
 
     while (node) {
-        sprintf(xpath, "%s/%s", xpath_prefix ? xpath_prefix : "", node->schema->name);
+        xpath = lyd_path(node, 0, NULL, 0);
 
         value = lyd_get_value(node);
         if (value) {
@@ -16,7 +16,7 @@ void print_nodes_recursively(struct lyd_node* node, char* xpath_prefix) {
 
         child = lyd_child(node);
         if (child) {
-            print_nodes_recursively(child, xpath);
+            print_nodes_recursively(child);
         }
 
         node = node->next;

@@ -83,7 +83,7 @@ def print_nodes_with_custom_c_function(data_tree: Optional[DNode]):
 
 def print_all_nodes_in_tree_with_custom_c_function(data_tree: Optional[DNode]):
     data_tree_cdata = _test.ffi.cast("struct lyd_node *", data_tree.cdata)
-    _test.lib.print_nodes_recursively(data_tree_cdata, _test.ffi.NULL)
+    _test.lib.print_nodes_recursively(data_tree_cdata)
 
 
 print('*', DATA_FILE_1)

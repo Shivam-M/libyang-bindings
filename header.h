@@ -1,3 +1,3 @@
 
 void print_node(struct lyd_node* node);
-void print_nodes_recursively(struct lyd_node* node, char* xpath_prefix);
+void print_nodes_recursively(struct lyd_node* node);
