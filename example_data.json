@@ -1,0 +1,8 @@
+{
+    "example:interface": {
+      "name": "GigabitEthernet1",
+      "subinterface": "123",
+      "ipv4-address": "1.1.1.1",
+      "mtu": 1500
+    }
+}

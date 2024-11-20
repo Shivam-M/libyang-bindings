@@ -19,13 +19,11 @@ for x in module:
     for y in x.iter_tree():
         print(y)
 
-try:
-    DATA_FILE = "example_data.xml"
-    data_tree = ctx.parse_data_file(open(DATA_FILE, "r+"), fmt="xml")
-    print("** parse_data_file:", DATA_FILE)
-except libyang.util.LibyangError as e:
-    print(f"** parse_data_file: {e}")
-    exit(1)
+
+DATA_FILE = "example_data.json"
+data_tree = ctx.parse_data_file(open(DATA_FILE, "r+"), fmt=DATA_FILE.split('.')[-1])
+print("** parse_data_file:", DATA_FILE)
+
 
 for node in data_tree:
     print(f"Node name: {node.schema().name()}, Value: {node.print_mem(fmt='json')}")
