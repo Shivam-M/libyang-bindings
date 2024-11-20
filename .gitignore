@@ -1,0 +1,7 @@
+__pycache__/
+*.pyd
+_test.cpython-313-x86_64-linux-gnu.so
+_test.c
+_test.o
+test
+Release/

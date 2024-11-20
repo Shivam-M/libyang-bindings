@@ -1,5 +1,7 @@
 import libyang
 import os
+from typing import Optional
+from libyang.data import DNode
 
 
 os.environ["YANGPATH"] = "/home/shivam/libyang-cffi-playground/yang"
@@ -23,7 +25,7 @@ for x in module:
 DATA_FILE_1 = "data/example_data.json"
 DATA_FILE_2 = "data/example_data_2.xml"
 
-def load_data_tree(file_path):
+def load_data_tree(file_path: str) -> Optional[DNode]:
     return ctx.parse_data_file(open(file_path, 'r'), fmt=file_path.split('.')[-1])
 
 data_tree_1 = load_data_tree(DATA_FILE_1)
@@ -43,7 +45,7 @@ else:
 
 
 # calculate diff using own worse method
-def get_nodes_with_values(data_tree):
+def get_nodes_with_values(data_tree: Optional[DNode]) -> dict:
     node_values = {}
     for node in data_tree:
         xpath = node.path()
@@ -71,3 +73,17 @@ if differences:
         print(f" 2. {DATA_FILE_2}: {difference['value_2']}")
 else:
     print(f"{DATA_FILE_1} and {DATA_FILE_2} are the same")
+
+
+def print_nodes_with_custom_c_function(data_tree: Optional[DNode]):
+    import _test
+
+    for node in data_tree:
+        node_cdata = _test.ffi.cast("struct lyd_node *", node.cdata) # don't mix with libyang-cffi?
+        _test.lib.print_node(node_cdata)
+
+
+print('*', DATA_FILE_1)
+print_nodes_with_custom_c_function(data_tree_1)
+print('\n *', DATA_FILE_2)
+print_nodes_with_custom_c_function(data_tree_2)
