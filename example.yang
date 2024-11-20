@@ -1,0 +1,33 @@
+module example {
+  namespace "http://example.com/example";
+  prefix example;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  container interface {
+
+    leaf name {
+      type string;
+    }
+
+    leaf subinterface {
+      type string;
+    }
+
+    leaf shutdown {
+      type boolean;
+      default false;
+    }
+
+    leaf ipv4-address {
+      type inet:ipv4-address;
+      description "IPv4 address of the interface";
+    }
+
+    leaf mtu {
+      type uint16;
+    }
+  }
+}
