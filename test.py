@@ -4,7 +4,7 @@ from typing import Optional
 from libyang.data import DNode
 
 
-os.environ["YANGPATH"] = "/home/shivam/libyang-cffi-playground/yang"
+os.environ["YANGPATH"] = "yang"
 
 ctx = libyang.Context()
 

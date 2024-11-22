@@ -39,12 +39,13 @@ class Context:
         _test.lib.ly_in_new_filepath(str2c(data_path), 0, ly_in)
         _test.lib.lyd_parse_data(self._data, ffi.NULL, ly_in[0], data_format, 0, 0, top_node)
 
-        return Node(top_node[0])
+        return Node(top_node[0], self)
 
 
 class Node:
-    def __init__(self, data) -> None:
+    def __init__(self, data, context: Context) -> None:
         self._data = data
+        self._context = context
     
     def __getattr__(self, name: str):
         match name:
@@ -54,6 +55,33 @@ class Node:
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
                 return None
+
+    def __del__(self):
+        pass
+
+
+class LeafNode:
+    def __init__(self, data, context: Context) -> None:
+        super(data, context)
+    
+    def set_value(self, value):
+        pass
+
+
+class LeafListNode:
+    def __init__(self, data, context: Context) -> None:
+        super(data, context)
+
+    def __iter__(self):
+        yield None
+
+
+class ContainerNode:
+    def __init__(self, data, context: Context) -> None:
+        super(data, context)
+
+    def __iter__(self):
+        yield None
 
 
 class Test:
