@@ -70,6 +70,18 @@ char* lyd_path(const struct lyd_node *, LYD_PATH_TYPE, char *, size_t);
 const char * lyd_get_value(const struct lyd_node *);
 struct lyd_node* lyd_child(const struct lyd_node *);
 
+
+typedef enum {
+   LYS_OUT_UNKNOWN,
+   LYS_OUT_YANG,
+   LYS_OUT_YANG_COMPILED,
+   LYS_OUT_YIN,
+   LYS_OUT_TREE
+} LYS_OUTFORMAT;
+
+LY_ERR lys_print_module(struct ly_out *, const struct lys_module *, LYS_OUTFORMAT, size_t, uint32_t);
+
+
 ////////////////////////////
 
 

@@ -1,3 +1,4 @@
+import os
 import _test as _test
 from _test import ffi as ffi
 
@@ -19,19 +20,30 @@ def c2str(c_string, decode=True):
     return c_string
 
 
+class Module:
+    def __init__(self, data, context) -> None:
+        self._data = data
+        self._context = context
+
+    def print(self):
+        ly_out = ffi.new("struct ly_out**")
+        _test.lib.ly_out_new_fd(os.sys.stdout.fileno(), ly_out)
+        _test.lib.lys_print_module(ly_out[0], self._data, _test.lib.LYS_OUT_TREE, 0, 0);
+
+
 class Context:
     def __init__(self) -> None:
         context_pointer = ffi.new("struct ly_ctx**")
         _test.lib.ly_ctx_new(ffi.NULL, _test.lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
         self._data = context_pointer[0]
     
-    def add_search_path(self, path):
-        _test.lib.ly_ctx_set_searchdir(self._data, str2c(path))
+    def add_search_path(self, search_path: str):
+        _test.lib.ly_ctx_set_searchdir(self._data, str2c(search_path))
     
-    def load_module(self, module):
-        _test.lib.ly_ctx_load_module(self._data, str2c(module), ffi.NULL, ffi.NULL)
+    def load_module(self, module_path: str):
+        return Module(_test.lib.ly_ctx_load_module(self._data, str2c(module_path), ffi.NULL, ffi.NULL), self)
     
-    def load_data(self, data_path):
+    def load_data(self, data_path: str):
         top_node = ffi.new("struct lyd_node**")
         ly_in = ffi.new("struct ly_in**")
         data_format = _test.lib.LYD_JSON if data_path.endswith("json") else _test.lib.LYD_XML
@@ -64,7 +76,7 @@ class LeafNode:
     def __init__(self, data, context: Context) -> None:
         super(data, context)
     
-    def set_value(self, value):
+    def set_value(self, value: str):
         pass
 
 

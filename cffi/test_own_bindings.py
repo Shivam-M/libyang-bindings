@@ -7,7 +7,9 @@ context = Context()
 for path in os.environ.get("YANGPATH", "").split(":"):
     context.add_search_path(path)
 
-context.load_module("example")
+example_module = context.load_module("example")
+
+print(example_module.print())
 
 data_tree_1 = context.load_data("data/example_data.json")
 data_tree_2 = context.load_data("data/example_data_2.xml")
