@@ -1,3 +1,78 @@
+typedef enum {
+    LY_SUCCESS,
+    LY_EMEM,
+    LY_ESYS,
+    LY_EINVAL,
+    LY_EEXIST,
+    LY_ENOTFOUND,
+    LY_EINT,
+    LY_EVALID,
+    LY_EDENIED,
+    LY_EINCOMPLETE,
+    LY_ERECOMPILE,
+    LY_ENOT,
+    LY_EOTHER,
+    LY_EPLUGIN = 128
+} LY_ERR;
+
+
+struct ly_ctx;
+LY_ERR ly_ctx_new(const char *, uint16_t, struct ly_ctx **);
+void ly_ctx_destroy(struct ly_ctx *);
+int ly_ctx_set_searchdir(struct ly_ctx *, const char *);
+
+struct lys_module* ly_ctx_load_module(struct ly_ctx *, const char *, const char *, const char **);
+
+typedef enum {
+    LYD_UNKNOWN,
+    LYD_XML,
+    LYD_JSON,
+    LYD_LYB
+} LYD_FORMAT;
+
+struct ly_in;
+struct ly_out;
+typedef uint8_t ly_bool;
+void ly_in_free(struct ly_in *, ly_bool);
+void ly_out_free(struct ly_out *, void(*)(void *arg), ly_bool);
+ly_bool lyd_node_should_print(const struct lyd_node *node, uint32_t options);
+LY_ERR ly_in_new_memory(const char *, struct ly_in **);
+LY_ERR ly_in_new_filepath(const char *, size_t, struct ly_in **);
+LY_ERR ly_in_new_fd(int, struct ly_in **);
+LY_ERR ly_in_new_file(FILE *, struct ly_in **);
+LY_ERR ly_out_new_memory(char **, size_t, struct ly_out **);
+LY_ERR ly_out_new_filepath(const char *, struct ly_out **);
+LY_ERR ly_out_new_file(FILE *, struct ly_out **);
+LY_ERR ly_out_new_fd(int, struct ly_out **);
+
+
+LY_ERR lyd_parse_data(const struct ly_ctx *, struct lyd_node *, struct ly_in *, LYD_FORMAT, uint32_t, uint32_t, struct lyd_node **);
+
+
+#define LYD_PARSE_STRICT ...
+
+#define LY_CTX_DISABLE_SEARCHDIR_CWD ...
+#define LY_CTX_EXPLICIT_COMPILE ...
+#define LY_CTX_LEAFREF_EXTENDED ...
+#define LY_CTX_SET_PRIV_PARSED ...
+#define LY_CTX_NO_YANGLIBRARY ...
+
+LY_ERR ly_ctx_get_yanglib_data(const struct ly_ctx *, struct lyd_node **, const char *, ...);
+
+
+typedef enum {
+    LYD_PATH_STD,
+    LYD_PATH_STD_NO_LAST_PRED
+} LYD_PATH_TYPE;
+
+char* lyd_path(const struct lyd_node *, LYD_PATH_TYPE, char *, size_t);
+
+const char * lyd_get_value(const struct lyd_node *);
+struct lyd_node* lyd_child(const struct lyd_node *);
+
+////////////////////////////
+
+
 struct node_info {
     char* xpath;
     const char* value;
