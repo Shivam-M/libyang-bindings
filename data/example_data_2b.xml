@@ -1,0 +1,6 @@
+<interface xmlns="http://example.com/example">
+    <name>TenGigabitEthernet1/2/3</name>
+    <subinterface>321</subinterface>
+    <ipv4-address>2.2.2.2</ipv4-address>
+    <mtu>4321</mtu>
+</interface>

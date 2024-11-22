@@ -24,12 +24,14 @@ for x in module:
 
 DATA_FILE_1 = "data/example_data.json"
 DATA_FILE_2 = "data/example_data_2.xml"
+DATA_FILE_2B = "data/example_data_2b.xml"
 
 def load_data_tree(file_path: str) -> Optional[DNode]:
     return ctx.parse_data_file(open(file_path, 'r'), fmt=file_path.split('.')[-1])
 
 data_tree_1 = load_data_tree(DATA_FILE_1)
 data_tree_2 = load_data_tree(DATA_FILE_2)
+data_tree_2b = load_data_tree(DATA_FILE_2B)
 
 
 # calculate diff with built-in libyang method
@@ -85,6 +87,12 @@ def print_all_nodes_in_tree_with_custom_c_function(data_tree: Optional[DNode]):
     data_tree_cdata = _test.ffi.cast("struct lyd_node *", data_tree.cdata)
     _test.lib.print_nodes_recursively(data_tree_cdata)
 
+def get_and_print_differences(data_tree_1: Optional[DNode], data_tree_2: Optional[DNode]):
+    ddata_tree_cdata_1 = _test.ffi.cast("struct lyd_node *", data_tree_1.cdata)
+    data_tree_cdata_2 = _test.ffi.cast("struct lyd_node *", data_tree_2.cdata)
+    diff_node = _test.lib.get_differences(ddata_tree_cdata_1, data_tree_cdata_2)
+    _test.lib.print_nodes_recursively(diff_node)
+
 
 print('*', DATA_FILE_1)
 # print_nodes_with_custom_c_function(data_tree_1)
@@ -92,3 +100,11 @@ print_all_nodes_in_tree_with_custom_c_function(data_tree_1)
 print('\n *', DATA_FILE_2)
 # print_nodes_with_custom_c_function(data_tree_2)
 print_all_nodes_in_tree_with_custom_c_function(data_tree_2)
+print('\n *', DATA_FILE_2B)
+# print_nodes_with_custom_c_function(data_tree_2b)
+print_all_nodes_in_tree_with_custom_c_function(data_tree_2b)
+
+print(f"\n * changes from {DATA_FILE_2} --> {DATA_FILE_2B}:")
+get_and_print_differences(data_tree_2, data_tree_2b)
+
+print()

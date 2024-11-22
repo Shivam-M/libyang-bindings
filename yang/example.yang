@@ -7,7 +7,6 @@ module example {
   }
 
   container interface {
-
     leaf name {
       type string;
     }
