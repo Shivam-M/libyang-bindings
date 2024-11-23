@@ -1,0 +1,21 @@
+<interface xmlns="http://example.com/example">
+    <name>FastEthernet4</name>
+    <subinterface>444</subinterface>
+    <shutdown>false</shutdown>
+    <ipv4-address>4.4.4.4</ipv4-address>
+    <mtu>4444</mtu>
+    <access-list>
+      <rule>
+        <endpoint>1.1.1.1</endpoint>
+        <action>ALLOW</action>
+       </rule>
+       <rule>
+        <endpoint>2.2.2.2</endpoint>
+        <action>DENY</action>
+       </rule>
+       <rule>
+        <endpoint>3.3.3.3</endpoint>
+        <action>DEFAULT</action>
+       </rule>
+    </access-list>
+</interface>

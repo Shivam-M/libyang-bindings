@@ -28,5 +28,26 @@ module example {
     leaf mtu {
       type uint16;
     }
+
+    container access-list {
+      presence true;
+
+      list rule {
+        key endpoint;
+
+        leaf endpoint {
+          type inet:ipv4-address;
+        }
+
+        leaf action {
+          type enumeration {
+            enum ALLOW;
+            enum DENY;
+            enum DEFAULT;
+          }
+          default DEFAULT;
+        }
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import os
-import _test as _test
+import _test
 from _test import ffi as ffi
 
 
@@ -25,10 +25,10 @@ class Module:
         self._data = data
         self._context = context
 
-    def print(self):
+    def print(self, output=os.sys.stdout):
         ly_out = ffi.new("struct ly_out**")
-        _test.lib.ly_out_new_fd(os.sys.stdout.fileno(), ly_out)
-        _test.lib.lys_print_module(ly_out[0], self._data, _test.lib.LYS_OUT_TREE, 0, 0);
+        _test.lib.ly_out_new_fd(output.fileno(), ly_out)
+        _test.lib.lys_print_module(ly_out[0], self._data, _test.lib.LYS_OUT_TREE, 0, 0)
 
 
 class Context:
@@ -53,6 +53,35 @@ class Context:
 
         return Node(top_node[0], self)
 
+    def resolve_type(self):
+        pass
+
+    def get_differences(self, first_node, second_node):
+        return Node(_test.lib.get_differences(first_node._data, second_node._data), self)
+
+    def evaluate_differences(self, first_node, second_node, diff_node):
+        changes = {}
+        for node in diff_node.get_following_nodes():
+            xpath = node._xpath
+            value_first = first_node.get_value_at_xpath(xpath)
+            value_second = second_node.get_value_at_xpath(xpath)
+            changes[xpath] = {}
+
+            if value_first:
+                changes[xpath]["action"] = "removed"
+                changes[xpath]["old_value"] = value_first
+
+            if value_second:
+                changes[xpath]["action"] = "created"
+                changes[xpath]["new_value"] = value_second
+
+            if value_first and value_second:
+                changes[xpath]["action"] = "changed"
+
+            if value_first == value_second:
+                del changes[xpath]
+        return changes
+
 
 class Node:
     def __init__(self, data, context: Context) -> None:
@@ -68,11 +97,26 @@ class Node:
             case "_parent":
                 return None
 
+    def print(self):
+        _test.lib.print_node(self._data)
+
+    def get_following_nodes(self):
+        next_node = self._data
+        while (next_node):
+            if next_node := _test.lib.get_next_node(next_node):
+                yield Node(next_node, self._context)
+
+    def get_value_at_xpath(self, xpath):
+        node = _test.lib.get_node_at_xpath(self._data, str2c(xpath))
+        if node:
+            return Node(node, self._context)._value
+        return None
+
     def __del__(self):
         pass
 
 
-class LeafNode:
+class LeafNode(Node):
     def __init__(self, data, context: Context) -> None:
         super(data, context)
     
@@ -80,7 +124,7 @@ class LeafNode:
         pass
 
 
-class LeafListNode:
+class LeafListNode(Node):
     def __init__(self, data, context: Context) -> None:
         super(data, context)
 
@@ -88,7 +132,7 @@ class LeafListNode:
         yield None
 
 
-class ContainerNode:
+class ContainerNode(Node):
     def __init__(self, data, context: Context) -> None:
         super(data, context)
 

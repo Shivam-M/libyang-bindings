@@ -1,0 +1,25 @@
+{
+    "example:interface": {
+      "name": "FastEthernet4",
+      "subinterface": "444",
+      "shutdown": false,
+      "ipv4-address": "4.4.4.4",
+      "mtu": 4444,
+      "access-list": {
+        "rule": [
+          {
+            "endpoint": "1.1.1.1",
+            "action": "ALLOW"
+          },
+          {
+            "endpoint": "2.2.2.2",
+            "action": "DENY"
+          },
+          {
+            "endpoint": "3.3.3.3",
+            "action": "DEFAULT"
+          }
+        ]
+      }
+    }
+  }

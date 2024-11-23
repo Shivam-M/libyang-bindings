@@ -52,6 +52,34 @@ void print_node(struct lyd_node* node) {
 }
 
 
+struct lyd_node* get_next_node(struct lyd_node* node) {
+    struct lyd_node* child = lyd_child(node);
+    struct lyd_node* current_node = node;
+    if (child) return child;
+    
+    while (current_node) {
+        if (current_node->next) return current_node->next;
+        current_node = (struct lyd_node*)current_node->parent;
+    }
+
+    return NULL;
+}
+
+
+struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
+    if (!node || !xpath) return NULL;
+    struct ly_set* set;
+
+    lyd_find_xpath(node, xpath, &set);
+
+    if (set && set->count > 0) {
+        return set->dnodes[0];
+    }
+
+    return NULL;
+}
+
+
 void test() {
     return;
 }

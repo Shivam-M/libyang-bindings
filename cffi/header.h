@@ -82,6 +82,21 @@ typedef enum {
 LY_ERR lys_print_module(struct ly_out *, const struct lys_module *, LYS_OUTFORMAT, size_t, uint32_t);
 
 
+LY_ERR lys_find_xpath(const struct ly_ctx *, const struct lysc_node *, const char *, uint32_t, struct ly_set **);
+void ly_set_free(struct ly_set *, void(*)(void *obj));
+
+struct ly_set {
+	uint32_t size;
+	uint32_t count;
+    union {
+        struct lyd_node **dnodes;
+        struct lysc_node **snodes;
+        void **objs;
+    };
+};
+
+LY_ERR lyd_find_target(const struct ly_path *path, const struct lyd_node *tree, struct lyd_node **match );
+
 ////////////////////////////
 
 
@@ -94,5 +109,7 @@ struct node_info get_node_info(struct lyd_node* node);
 struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
 void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);
+struct lyd_node* get_next_node(struct lyd_node* node);
+struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
 
 void test();
