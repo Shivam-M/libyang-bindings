@@ -29,12 +29,7 @@ for node in data_tree_2.get_following_nodes():
     if node._value:
         print(f"{node._xpath} = {node._value}")
 
-print(f"\n* updates from {DATA_FILE_3} -> {DATA_FILE_3B}:")
 diff_tree = context.get_differences(data_tree_1, data_tree_2)
-for node in diff_tree.get_following_nodes():
-    if node._value:
-        print(f"{node._xpath} = {node._value}")
-
 differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
 # print(json.dumps(differences, indent=4))
 
@@ -42,27 +37,11 @@ print(f"\n* differences from {DATA_FILE_3} -> {DATA_FILE_3B}: ")
 for xpath, change in differences.items():
     action = change["action"]
     if action == "changed":
-        print(f"{xpath} = \t CHANGED: {change["old_value"]} -> {change["new_value"]}")
+        print(f"{xpath} = \t\u001b[37;43m\u001b[30m CHANGED \033[0m {change["old_value"]} -> {change["new_value"]}")
     elif action == "removed":
-        print(f"{xpath} = \t REMOVED: {change["old_value"]}")
+        print(f"{xpath} = \t\u001b[37;41m\u001b[30m REMOVED \033[0m {change["old_value"]}")
     elif action == "created":
-        print(f"{xpath} = \t CREATED: {change["new_value"]}")
-
-# return something like
-# { xpath: {
-#     action: created,
-#     new_value: 123
-#  },
-#   xpath2: {
-#     action: removed,
-#     old_value: 123
-#   },
-#   xpath3: {
-#     action: modified,
-#     old_value: 123,
-#     new_value: 321
-#   }
-# }
+        print(f"{xpath} = \t\u001b[37;42m\u001b[30m CREATED \033[0m {change["new_value"]}")
 
 # Test.print_nodes_recursively(data_tree_2)
 

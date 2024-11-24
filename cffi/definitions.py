@@ -91,7 +91,7 @@ class Node:
     def __getattr__(self, name: str):
         match name:
             case "_xpath":
-                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0))
+                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0))  # store instead
             case "_value":
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
@@ -108,9 +108,7 @@ class Node:
 
     def get_value_at_xpath(self, xpath):
         node = _test.lib.get_node_at_xpath(self._data, str2c(xpath))
-        if node:
-            return Node(node, self._context)._value
-        return None
+        return Node(node, self._context)._value if node else None
 
     def __del__(self):
         pass

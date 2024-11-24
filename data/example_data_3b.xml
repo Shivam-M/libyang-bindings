@@ -13,5 +13,9 @@
         <endpoint>2.2.2.2</endpoint>
         <action>ALLOW</action>
        </rule>
+       <rule>
+        <endpoint>5.5.5.5</endpoint>
+        <action>DEFAULT</action>
+       </rule>
     </access-list>
 </interface>
