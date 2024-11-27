@@ -17,6 +17,11 @@ struct node_info get_node_info(struct lyd_node* node) {
 }
 
 
+struct lyd_node* get_sibling(struct lyd_node* node) {
+    return node->next;
+}
+
+
 void print_nodes_recursively(struct lyd_node* node) {
     struct lyd_node* child;
 

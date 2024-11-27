@@ -97,6 +97,39 @@ struct ly_set {
 
 LY_ERR lyd_find_target(const struct ly_path *path, const struct lyd_node *tree, struct lyd_node **match );
 
+
+struct lyd_node {
+    uint32_t hash;
+    uint32_t flags;
+    const struct lysc_node *schema;
+    struct lyd_node_inner *parent;
+    struct lyd_node *next;
+    struct lyd_node *prev;
+    struct lyd_meta *meta;
+    void *priv;
+};
+
+
+struct lysc_node {
+    uint16_t nodetype;
+    uint16_t flags;
+    struct lys_module *module;
+    struct lysc_node *parent;
+    struct lysc_node *next;
+    struct lysc_node *prev;
+    const char *name;
+    const char *dsc;
+    const char *ref;
+    struct lysc_ext_instance *exts;
+    void *priv;
+    ...;
+};
+
+
+LY_ERR lyd_new_term(struct lyd_node *, const struct lys_module *, const char *, const char *, uint32_t, struct lyd_node **);
+LY_ERR lyd_new_inner(struct lyd_node *, const struct lys_module *, const char *, ly_bool, struct lyd_node **);
+LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, uint32_t, struct lyd_node **node, ...);
+
 ////////////////////////////
 
 
@@ -111,5 +144,6 @@ void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);
 struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
+struct lyd_node* get_sibling(struct lyd_node* node);
 
 void test();

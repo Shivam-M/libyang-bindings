@@ -43,6 +43,19 @@ for xpath, change in differences.items():
     elif action == "created":
         print(f"{xpath} = \t\u001b[37;42m\u001b[30m CREATED \033[0m {change["new_value"]}")
 
+access_list_node = data_tree_2.get_node_at_xpath("/example:interface/access-list")
+new_rule = context.create_list_node(access_list_node, "rule", ["7.7.7.7"])
+context.create_terminal_node(new_rule, "action", "DENY")
+
+if new_rule in access_list_node.get_children():
+    print("\n* node was added")
+
+print("\n* updated access-list:")
+for rule in access_list_node.get_children():
+    endpoint = rule.get_value_at_xpath("endpoint")
+    action = rule.get_value_at_xpath("action")
+    print(endpoint, action)
+
 # Test.print_nodes_recursively(data_tree_2)
 
 # for (xpath, value) in data_tree._parent.get_all_xpaths_and_values():
