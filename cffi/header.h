@@ -97,6 +97,44 @@ struct ly_set {
 
 LY_ERR lyd_find_target(const struct ly_path *path, const struct lyd_node *tree, struct lyd_node **match );
 
+struct lysc_node_list {
+    struct lysc_node *child;
+    struct lysc_must *musts;
+    struct lysc_when **when;
+    struct lysc_node_action *actions;
+    struct lysc_node_notif *notifs;
+    struct lysc_node_leaf ***uniques;
+    uint32_t min;
+    uint32_t max;
+    ...;
+};
+
+struct lysc_node_leaflist {
+    struct lysc_must *musts;
+    struct lysc_when **when;
+    struct lysc_type *type;
+    const char *units;
+    struct lyd_value **dflts;
+    uint32_t min;
+    uint32_t max;
+    ...;
+};
+
+struct lysp_node_list {
+    struct lysp_restr *musts;
+    struct lysp_when *when;
+    const char *key;
+    struct lysp_tpdf *typedefs;
+    struct lysp_node_grp *groupings;
+    struct lysp_node *child;
+    struct lysp_node_action *actions;
+    struct lysp_node_notif *notifs;
+    struct lysp_qname *uniques;
+    uint32_t min;
+    uint32_t max;
+    ...;
+};
+
 
 struct lyd_node {
     uint32_t hash;
@@ -131,7 +169,7 @@ LY_ERR lyd_new_inner(struct lyd_node *, const struct lys_module *, const char *,
 LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, uint32_t, struct lyd_node **node, ...);
 
 ////////////////////////////
-
+void get_list_keys_from_data_node(const struct lyd_node* data_node);
 
 struct node_info {
     char* xpath;

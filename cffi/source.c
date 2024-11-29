@@ -16,11 +16,9 @@ struct node_info get_node_info(struct lyd_node* node) {
     return info;
 }
 
-
 struct lyd_node* get_sibling(struct lyd_node* node) {
     return node->next;
 }
-
 
 void print_nodes_recursively(struct lyd_node* node) {
     struct lyd_node* child;
@@ -41,11 +39,8 @@ void print_nodes_recursively(struct lyd_node* node) {
     }
 }
 
-
 void print_node(struct lyd_node* node) {
-    if (node == NULL) {
-        return;
-    }
+    if (node == NULL) return;
     
     const char* name = node->schema->name; // improper?
     const char* value = lyd_get_value(node);
@@ -55,7 +50,6 @@ void print_node(struct lyd_node* node) {
         printf("Couldn't print value of the node.\n");
     }
 }
-
 
 struct lyd_node* get_next_node(struct lyd_node* node) {
     struct lyd_node* child = lyd_child(node);
@@ -70,20 +64,36 @@ struct lyd_node* get_next_node(struct lyd_node* node) {
     return NULL;
 }
 
-
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
-    if (!node || !xpath) return NULL;
+    if (node == NULL || xpath == NULL) return NULL;
     struct ly_set* set;
 
     lyd_find_xpath(node, xpath, &set);
 
-    if (set && set->count > 0) {
-        return set->dnodes[0];
-    }
+    if (set && set->count > 0) return set->dnodes[0];
 
     return NULL;
 }
 
+void get_list_keys_from_data_node(const struct lyd_node* data_node) {
+    const struct lysc_node* schema_node = data_node->schema;
+    
+    if (schema_node->nodetype == LYS_LIST) {
+        const struct lysc_node_list* list_schema = (const struct lysc_node_list*)schema_node;
+        const struct lysc_node* child = list_schema->child;
+
+        while (child) {
+            if (child->nodetype == LYS_LEAF) {
+                if (child->flags & LYS_KEY) {
+                    printf("- key: %s\n", child->name);
+                }
+            }
+            child = child->next;
+        }
+    } else {
+        printf("not list");
+    }
+}
 
 void test() {
     return;

@@ -1,23 +1,13 @@
 import os
 import _test
-from _test import ffi as ffi
+from _test import ffi
 
 
-def str2c(py_string, encode=True):
-    if py_string is None:
-        return ffi.NULL 
-    if encode:
-        py_string = py_string.encode("utf-8")
-    return ffi.new("char []", py_string)
+def str2c(py_string):
+    return ffi.new("char []", py_string.encode("utf-8")) if py_string is not None else ffi.NULL
 
-
-def c2str(c_string, decode=True):
-    if c_string == ffi.NULL:
-        return None
-    c_string = ffi.string(c_string)
-    if decode:
-        c_string = c_string.decode("utf-8")
-    return c_string
+def c2str(c_string):
+    return ffi.string(c_string).decode("utf-8") if c_string != ffi.NULL else None
 
 
 class Module:
@@ -107,13 +97,34 @@ class Node:
     def __getattr__(self, name: str):
         match name:
             case "_name":
-                return c2str(_test.lib.lyd_node_name(self._data))
+                return c2str(self._data.schema.name).replace('-', '_').lower()
             case "_xpath":
                 return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0))  # store instead?
             case "_value":
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
                 return None
+            case _:
+                for node in self.get_children():
+                    if name == node._name:
+                        return node
+                raise Exception("does not exist...")
+
+    def __getitem__(self, name: str):
+        _test.lib.get_list_keys_from_data_node(self._data)
+        for next in self.get_following_nodes():  # replace with a get_siblings method?
+            if next.get_value_at_xpath("endpoint") == name:  # get keys
+                return next
+        raise Exception("does not exist...")
+
+    def __str__(self):
+        return f"{self._xpath} = {self._value}"
+    
+    def is_node_a_key():
+        pass
+
+    def get_list_keys(self):
+        _test.lib.get_list_keys_from_data_node(self._data)
 
     def print(self):
         _test.lib.print_node(self._data)
@@ -125,6 +136,7 @@ class Node:
                 yield Node(next_node, self._context)
 
     def get_node_at_xpath(self, xpath):
+        # todo: if xpath begins with '/' get root node and search from there
         return Node(_test.lib.get_node_at_xpath(self._data, str2c(xpath)), self._context)
 
     def get_value_at_xpath(self, xpath):
@@ -138,7 +150,10 @@ class Node:
             child = _test.lib.get_sibling(child)
 
     def __eq__(self, other):
-        return self._data == other._data
+        if isinstance(other, Node):
+            return self._data == other._data
+        if isinstance(other, str):  # temp: would get caught out if node above/below has same name
+            return self._name == other._name
 
     def __del__(self):
         pass

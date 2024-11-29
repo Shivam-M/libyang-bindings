@@ -1,4 +1,3 @@
-import os
 import json
 from definitions import Context, Test
 
@@ -45,7 +44,7 @@ for xpath, change in differences.items():
 
 access_list_node = data_tree_2.get_node_at_xpath("/example:interface/access-list")
 new_rule = context.create_list_node(access_list_node, "rule", ["7.7.7.7"])
-context.create_terminal_node(new_rule, "action", "DENY")
+context.create_terminal_node(new_rule, "action", "DENY")  # todo: build automatically based on schema
 
 if new_rule in access_list_node.get_children():
     print("\n* node was added")
@@ -55,6 +54,10 @@ for rule in access_list_node.get_children():
     endpoint = rule.get_value_at_xpath("endpoint")
     action = rule.get_value_at_xpath("action")
     print(endpoint, action)
+
+print("\n* get list item from leaf-list: ")
+specific_rule = data_tree_2.access_list.rule["7.7.7.7"]
+[child.print() for child in specific_rule.get_children()]
 
 # Test.print_nodes_recursively(data_tree_2)
 
