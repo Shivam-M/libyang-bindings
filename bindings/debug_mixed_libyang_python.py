@@ -76,7 +76,7 @@ if differences:
 else:
     print(f"{DATA_FILE_1} and {DATA_FILE_2} are the same")
 
-import cffi._test as _test
+import _test
 
 def print_nodes_with_custom_c_function(data_tree: Optional[DNode]):
     for node in data_tree:
@@ -108,3 +108,4 @@ print(f"\n * changes from {DATA_FILE_2} --> {DATA_FILE_2B}:")
 get_and_print_differences(data_tree_2, data_tree_2b)
 
 print()
+

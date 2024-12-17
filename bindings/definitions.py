@@ -26,6 +26,12 @@ class Context:
         context_pointer = ffi.new("struct ly_ctx**")
         _test.lib.ly_ctx_new(ffi.NULL, _test.lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
         self._data = context_pointer[0]
+
+    def free(self):
+        _test.lib.ly_ctx_destroy(self._data)
+
+    def test(self):
+        _test.lib.test()
     
     def add_search_path(self, search_path: str):
         _test.lib.ly_ctx_set_searchdir(self._data, str2c(search_path))

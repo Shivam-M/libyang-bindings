@@ -170,16 +170,10 @@ LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, 
 
 ////////////////////////////
 void get_list_keys_from_data_node(const struct lyd_node* data_node);
-
-struct node_info {
-    char* xpath;
-    const char* value;
-};
-
-struct node_info get_node_info(struct lyd_node* node);
-struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
 void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);
+
+struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
 struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
 struct lyd_node* get_sibling(struct lyd_node* node);

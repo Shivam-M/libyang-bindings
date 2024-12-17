@@ -1,0 +1,16 @@
+sudo apt-get install python3-dbg valgrind
+curl https://raw.githubusercontent.com/python/cpython/refs/heads/main/Misc/valgrind-python.supp >> valgrind-python.supp
+python3-dbg -m venv lcp-debug-venv
+source lcp-debug-venv/bin/activate
+pip install -r requirements.txt
+
+# TODO: Get pyenv debug environment to work with valgrind instead of using python3-dbg
+# pyenv install --debug 3.13.0
+# pyenv virtualenv 3.13.0-debug libyang-cffi-playground-debug
+# pyenv activate libyang-cffi-playground-debug
+# export PYTHONMALLOC=malloc
+# valgrind --leak-check=full --show-leak-kinds=all --suppressions=valgrind-python.supp python bindings/test_own_bindings.py
+
+# fixed/replaced by running pyenv python3 executable directly instead of shim
+
+valgrind --leak-check=full --show-leak-kinds=all python3 bindings/test_own_bindings.py
