@@ -1,6 +1,7 @@
 import os
 import _test
 from _test import ffi
+from typing import Union
 
 
 def str2c(py_string):
@@ -44,7 +45,7 @@ class Context:
     def add_search_path(self, search_path: str):
         _test.lib.ly_ctx_set_searchdir(self._data, str2c(search_path))
     
-    def load_module(self, module_path: str):
+    def load_module(self, module_path: str) -> Module:
         return Module(_test.lib.ly_ctx_load_module(self._data, str2c(module_path), ffi.NULL, ffi.NULL), self)
     
     def load_data(self, data_path: str):
@@ -139,18 +140,31 @@ class Node:
                         return node
                 raise Exception("does not exist...")
 
-    def __getitem__(self, name: str):
-        _test.lib.get_list_keys_from_data_node(self._data)
+    def __getitem__(self, name: Union[str, tuple]):  # assumed list, move to LeafListNode
+        if isinstance(name, str):
+            print("Single key - str")
+
+        if isinstance(name, tuple):
+            print("Multiple keys - tuple")
+
+        list_keys = []
+        key_set = _test.lib.get_list_keys_from_data_node(self._data)
+
+        for x in range(key_set.count):
+            list_keys.append(c2str(ffi.cast("char*", key_set.objs[x])))
+
+        print("# Keys in Python:", list_keys)
+
+        _test.lib.ly_set_free(key_set, ffi.NULL)
+
         for next in self.get_following_nodes():  # replace with a get_siblings method?
-            if next.get_value_at_xpath("endpoint") == name:  # get keys
-                return next
+            for key in list_keys:
+                if next.get_value_at_xpath(key) == name:  # get keys
+                    return next
         raise Exception("does not exist...")
 
     def __str__(self):
         return f"{self._xpath} = {self._value}"
-    
-    def is_node_a_key():
-        pass
 
     def get_list_keys(self):
         _test.lib.get_list_keys_from_data_node(self._data)
@@ -181,8 +195,6 @@ class Node:
     def __eq__(self, other):
         if isinstance(other, Node):
             return self._data == other._data
-        if isinstance(other, str):  # temp: would get caught out if node above/below has same name
-            return self._name == other._name
 
 
 class LeafNode(Node):

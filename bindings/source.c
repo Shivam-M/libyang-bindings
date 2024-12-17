@@ -74,23 +74,38 @@ struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
     return found_node;
 }
 
-void get_list_keys_from_data_node(const struct lyd_node* data_node) {
+struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node) {
     const struct lysc_node* schema_node = data_node->schema;
     
     if (schema_node->nodetype == LYS_LIST) {
         const struct lysc_node_list* list_schema = (const struct lysc_node_list*)schema_node;
         const struct lysc_node* child = list_schema->child;
+        struct ly_set* key_set = NULL;
+
+        ly_set_new(&key_set);
 
         while (child) {
             if (child->nodetype == LYS_LEAF) {
                 if (child->flags & LYS_KEY) {
+                    ly_set_add(key_set, child->name, 0, NULL);
                     printf("- key: %s\n", child->name);
                 }
             }
             child = child->next;
         }
+        return key_set;
     } else {
         printf("not list");
+    }
+    return NULL;
+}
+
+void free_list_keys(struct ly_set* key_set) {
+    if (key_set) {
+        for (uint32_t i = 0; i < key_set->count; i++) {
+            free(key_set->objs[i]);
+        }
+        ly_set_free(key_set, NULL);
     }
 }
 

@@ -84,6 +84,8 @@ LY_ERR lys_print_module(struct ly_out *, const struct lys_module *, LYS_OUTFORMA
 
 LY_ERR lys_find_xpath(const struct ly_ctx *, const struct lysc_node *, const char *, uint32_t, struct ly_set **);
 void ly_set_free(struct ly_set *, void(*)(void *obj));
+LY_ERR ly_set_add(struct ly_set *set, const void *object, ly_bool list, uint32_t *index_p);
+LY_ERR ly_set_new(struct ly_set **set_p);
 
 struct ly_set {
 	uint32_t size;
@@ -175,13 +177,13 @@ void lyd_free_tree(struct lyd_node *node);
 void free(void *ptr);
 ///
 
-void get_list_keys_from_data_node(const struct lyd_node* data_node);
-void print_node(struct lyd_node* node);
-void print_nodes_recursively(struct lyd_node* node);
-
+struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node);
 struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
 struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
 struct lyd_node* get_sibling(struct lyd_node* node);
 
+void free_list_keys(struct ly_set* key_set);
+void print_node(struct lyd_node* node);
+void print_nodes_recursively(struct lyd_node* node);
 void test();
