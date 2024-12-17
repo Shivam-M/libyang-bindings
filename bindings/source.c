@@ -21,6 +21,8 @@ void print_nodes_recursively(struct lyd_node* node) {
             printf("%s = %s\n", xpath, value);
         }
 
+        free(xpath);
+
         child = lyd_child(node);
         if (child) {
             print_nodes_recursively(child);
@@ -43,13 +45,14 @@ void print_node(struct lyd_node* node) {
 }
 
 struct lyd_node* get_next_node(struct lyd_node* node) {
+    if (node == NULL) return NULL;
+
     struct lyd_node* child = lyd_child(node);
-    struct lyd_node* current_node = node;
     if (child) return child;
-    
-    while (current_node) {
-        if (current_node->next) return current_node->next;
-        current_node = (struct lyd_node*)current_node->parent;
+
+    while (node) {
+        if (node->next) return node->next;
+        node = (struct lyd_node*)node->parent;
     }
 
     return NULL;
@@ -58,12 +61,17 @@ struct lyd_node* get_next_node(struct lyd_node* node) {
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
     if (node == NULL || xpath == NULL) return NULL;
     struct ly_set* set;
+    struct lyd_node* found_node = NULL;
 
     lyd_find_xpath(node, xpath, &set);
 
-    if (set && set->count > 0) return set->dnodes[0];
+    if (set && set->count > 0) {
+        found_node = set->dnodes[0];
+    }
 
-    return NULL;
+    ly_set_free(set, NULL);
+
+    return found_node;
 }
 
 void get_list_keys_from_data_node(const struct lyd_node* data_node) {

@@ -6,8 +6,11 @@ from _test import ffi
 def str2c(py_string):
     return ffi.new("char []", py_string.encode("utf-8")) if py_string is not None else ffi.NULL
 
-def c2str(c_string):
-    return ffi.string(c_string).decode("utf-8") if c_string != ffi.NULL else None
+def c2str(c_string, free=False):
+    py_string = ffi.string(c_string).decode("utf-8") if c_string != ffi.NULL else None
+    if (free and py_string):
+        _test.lib.free(c_string)
+    return py_string
 
 
 class Module:
@@ -27,8 +30,13 @@ class Context:
         _test.lib.ly_ctx_new(ffi.NULL, _test.lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
         self._data = context_pointer[0]
 
+    # def __del__(self):
+    #     self.free()
+
     def free(self):
-        _test.lib.ly_ctx_destroy(self._data)
+        if self._data:
+            _test.lib.ly_ctx_destroy(self._data)
+            self._data = None
 
     def test(self):
         _test.lib.test()
@@ -46,6 +54,7 @@ class Context:
 
         _test.lib.ly_in_new_filepath(str2c(data_path), 0, ly_in)
         _test.lib.lyd_parse_data(self._data, ffi.NULL, ly_in[0], data_format, 0, 0, top_node)
+        _test.lib.ly_in_free(ly_in[0], 0)
 
         return Node(top_node[0], self)
 
@@ -95,17 +104,31 @@ class Context:
         return Node(terminal_node[0], self)
 
 
+
 class Node:
     def __init__(self, data, context: Context) -> None:
         self._data = data
         self._context = context
     
+    # def __del__(self):
+    #     self.free()
+
+    def free(self):
+        if self._data:
+            if self.is_root():
+                # print(f"Attempt to free: {self}")
+                _test.lib.lyd_free_all(self._data)
+                self._data = None
+
+    def is_root(self):
+        return self._data.parent == ffi.NULL
+
     def __getattr__(self, name: str):
         match name:
             case "_name":
                 return c2str(self._data.schema.name).replace('-', '_').lower()
             case "_xpath":
-                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0))  # store instead?
+                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=True)  # store instead?
             case "_value":
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
@@ -160,9 +183,6 @@ class Node:
             return self._data == other._data
         if isinstance(other, str):  # temp: would get caught out if node above/below has same name
             return self._name == other._name
-
-    def __del__(self):
-        pass
 
 
 class LeafNode(Node):

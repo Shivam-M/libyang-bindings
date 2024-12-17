@@ -168,7 +168,13 @@ LY_ERR lyd_new_term(struct lyd_node *, const struct lys_module *, const char *, 
 LY_ERR lyd_new_inner(struct lyd_node *, const struct lys_module *, const char *, ly_bool, struct lyd_node **);
 LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, uint32_t, struct lyd_node **node, ...);
 
+void lyd_free_all(struct lyd_node *node);
+void lyd_free_tree(struct lyd_node *node);
+
 ////////////////////////////
+void free(void *ptr);
+///
+
 void get_list_keys_from_data_node(const struct lyd_node* data_node);
 void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);

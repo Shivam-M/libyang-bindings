@@ -59,6 +59,12 @@ print("\n* get list item from leaf-list: ")
 specific_rule = data_tree_2.access_list.rule["7.7.7.7"]
 [child.print() for child in specific_rule.get_children()]
 
+# Move to using __del__ and/or ffi.gc:
+data_tree_1.free()
+data_tree_2.free()
+diff_tree.free()
+context.free()
+
 # Test.print_nodes_recursively(data_tree_2)
 
 # for (xpath, value) in data_tree._parent.get_all_xpaths_and_values():
