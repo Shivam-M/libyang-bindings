@@ -173,6 +173,8 @@ LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, 
 void lyd_free_all(struct lyd_node *node);
 void lyd_free_tree(struct lyd_node *node);
 
+struct lyd_node * lyd_parent(const struct lyd_node *node);
+
 ////////////////////////////
 void free(void *ptr);
 ///

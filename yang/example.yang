@@ -49,5 +49,30 @@ module example {
         }
       }
     }
+
+    list neighbour {
+      key "address vrf interface";
+
+      leaf address {
+        type inet:ipv4-address;
+      }
+
+      leaf vrf {
+        type string;
+      }
+
+      leaf interface {
+        type string;
+      }
+
+      leaf state {
+        type enumeration {
+          enum UP;
+          enum DOWN;
+        }
+        default DOWN;
+      }
+    }
+
   }
 }

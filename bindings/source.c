@@ -88,7 +88,6 @@ struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node) {
             if (child->nodetype == LYS_LEAF) {
                 if (child->flags & LYS_KEY) {
                     ly_set_add(key_set, child->name, 0, NULL);
-                    printf("- key: %s\n", child->name);
                 }
             }
             child = child->next;

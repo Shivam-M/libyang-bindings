@@ -133,35 +133,34 @@ class Node:
             case "_value":
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
-                return None
+                if parent_node_data := _test.lib.lyd_parent(self._data):
+                    return Node(parent_node_data, self._context)
+                return
             case _:
                 for node in self.get_children():
                     if name == node._name:
                         return node
-                raise Exception("does not exist...")
+                raise Exception("child does not exist...")
 
-    def __getitem__(self, name: Union[str, tuple]):  # assumed list, move to LeafListNode
-        if isinstance(name, str):
-            print("Single key - str")
-
-        if isinstance(name, tuple):
-            print("Multiple keys - tuple")
-
-        list_keys = []
+    def __getitem__(self, name: Union[str, tuple]):
         key_set = _test.lib.get_list_keys_from_data_node(self._data)
+        list_keys = []
 
         for x in range(key_set.count):
             list_keys.append(c2str(ffi.cast("char*", key_set.objs[x])))
 
-        print("# Keys in Python:", list_keys)
-
         _test.lib.ly_set_free(key_set, ffi.NULL)
 
-        for next in self.get_following_nodes():  # replace with a get_siblings method?
-            for key in list_keys:
-                if next.get_value_at_xpath(key) == name:  # get keys
-                    return next
-        raise Exception("does not exist...")
+        if isinstance(name, (int, str)):
+            name = (str(name),)
+
+        constructed_xpath = f"{self._name}"
+        for i, key in enumerate(name):
+            if i >= len(list_keys):
+                raise Exception("too many keys")
+            constructed_xpath += f"[{list_keys[i]}='{key}']"
+
+        return self._parent.get_node_at_xpath(constructed_xpath)
 
     def __str__(self):
         return f"{self._xpath} = {self._value}"
@@ -179,7 +178,6 @@ class Node:
                 yield Node(next_node, self._context)
 
     def get_node_at_xpath(self, xpath):
-        # todo: if xpath begins with '/' get root node and search from there
         return Node(_test.lib.get_node_at_xpath(self._data, str2c(xpath)), self._context)
 
     def get_value_at_xpath(self, xpath):

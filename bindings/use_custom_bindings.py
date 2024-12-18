@@ -59,9 +59,22 @@ print("\n* get list item from leaf-list: ")
 specific_rule = data_tree_2.access_list.rule["7.7.7.7"]
 [child.print() for child in specific_rule.get_children()]
 
+DATA_FILE_4 = "data/example_data_4.xml"
+data_tree_4 = context.load_data(DATA_FILE_4)
+
+print("\n*", DATA_FILE_4)
+for node in data_tree_4.get_following_nodes():
+    if node._value:
+        print(f"{node._xpath} = {node._value}")
+
+print("\n* get multi-key item from leaf-list: ")
+specific_neighbour = data_tree_4.neighbour["1.1.1.2", "VRF_2", "GigabitEthernet2"]
+[child.print() for child in specific_neighbour.get_children()]
+
 # Move to using __del__ and/or ffi.gc:
 data_tree_1.free()
 data_tree_2.free()
+data_tree_4.free()
 diff_tree.free()
 context.free()
 
