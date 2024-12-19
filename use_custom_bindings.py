@@ -44,7 +44,8 @@ for xpath, change in differences.items():
 
 access_list_node = data_tree_2.get_node_at_xpath("/example:interface/access-list")
 new_rule = context.create_list_node(access_list_node, "rule", ["7.7.7.7"])
-context.create_terminal_node(new_rule, "action", "DENY")  # todo: build automatically based on schema
+# context.create_terminal_node(new_rule, "action", "DENY")  # todo: build automatically based on schema
+new_rule.action = "ALLOW"
 
 if new_rule in access_list_node.get_children():
     print("\n* node was added")
@@ -70,7 +71,18 @@ for node in data_tree_4.get_following_nodes():
 print("\n* get multi-key item from leaf-list: ")
 specific_neighbour = data_tree_4.neighbour["1.1.1.2", "VRF_2", "GigabitEthernet2"]
 specific_neighbour.state = "DOWN"
+specific_neighbour.information = "Hello"
 [child.print() for child in specific_neighbour.get_children()]
+
+new_neighbour = context.create_list_node(data_tree_4, "neighbour", ["1.1.1.4", "VRF_4", "GigabitEthernet4"])
+
+if new_rule in access_list_node.get_children():
+    print("\n* node was added")
+
+print(f"\n* updated {DATA_FILE_4}")
+for node in data_tree_4.get_following_nodes():
+    if node._value:
+        print(f"{node._xpath} = {node._value}")
 
 # Move to using __del__ and/or ffi.gc:
 data_tree_1.free()

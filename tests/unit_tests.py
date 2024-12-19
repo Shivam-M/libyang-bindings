@@ -3,7 +3,7 @@ from bindings.definitions import Context
 
 
 @pytest.fixture
-def context():
+def context():  # TODO: free
     context = Context()
     context.add_search_path("yang")
     context.load_module("example")
@@ -13,7 +13,6 @@ def context():
 def test_change_node_value(context):
     # Arrange
     data_tree = context.load_data("data/example_data_3b.xml")
-
     interface = data_tree  # TODO: Change so first node isn't classed as the "root"
 
     # Act
@@ -21,6 +20,18 @@ def test_change_node_value(context):
 
     # Assert
     assert interface.name._value == "TenGigabitEthernet99"
+
+
+def test_create_node_value(context):
+    # Arrange
+    data_tree = context.load_data("data/example_data_4.xml")
+    interface = data_tree
+
+    # Act
+    interface.mtu = 1234
+
+    # Assert
+    assert interface.mtu._value == "1234"  # TODO: Add type casting based on data type in schema
 
 
 def test_differences_exact_match(context):
@@ -100,15 +111,29 @@ def test_retrieve_list_element_multiple_keys(context):
     assert second_neighbour.state._value == "DOWN"
 
 
-def test_create_list_item(context):
+def test_create_list_element_single_key(context):
     # Arrange
     data_tree = context.load_data("data/example_data_3b.xml")
 
     # Act
     access_list = data_tree.access_list
-    rule = context.create_list_node(access_list, "rule", ["7.7.7.7"])
-    context.create_terminal_node(rule, "action", "DENY")  # TODO: Refactor so this is created automatically // lyd_insert_child/sibling?
+    rule = access_list.create("rule", "7.7.7.7")
 
     # Assert
     assert rule in access_list.get_children()
-    assert rule.action._value == "DENY"
+    assert rule.action._value == "DEFAULT"
+
+
+def test_create_list_element_multiple_keys(context):
+    # Arrange
+    data_tree = context.load_data("data/example_data_4.xml")
+
+    # Act
+    neighbour = data_tree.create("neighbour", ["1.1.1.4", "VRF_4", "GigabitEthernet4"])
+    neighbour.state = "UP"
+    neighbour.information = "This was created at runtime"
+
+    # Assert
+    assert neighbour in data_tree.get_children()
+    assert neighbour.state._value == "UP"
+    assert neighbour.information._value == "This was created at runtime"

@@ -5,7 +5,7 @@ from typing import Union
 
 
 def str2c(py_string):
-    return ffi.new("char []", py_string.encode("utf-8")) if py_string is not None else ffi.NULL
+    return ffi.new("char []", str(py_string).encode("utf-8")) if py_string is not None else ffi.NULL
 
 def c2str(c_string, free=False):
     py_string = ffi.string(c_string).decode("utf-8") if c_string != ffi.NULL else None
@@ -90,8 +90,12 @@ class Context:
     
     ## move create/add methods to leaflistnode
     def create_list_node(self, parent, name, values):
+        if isinstance(values, (int, str)):
+            values = (str(values),)
+
         list_node = ffi.new("struct lyd_node**")
         _test.lib.lyd_new_list(parent._data, ffi.NULL, str2c(name), 0, list_node, *[str2c(value) for value in values])
+        _test.lib.lyd_validate_all(list_node, self._data, 0, ffi.NULL)
         return Node(list_node[0], self)
 
     def create_inner_node(self, parent, name):
@@ -103,7 +107,6 @@ class Context:
         terminal_node = ffi.new("struct lyd_node**")
         _test.lib.lyd_new_term(parent._data, ffi.NULL, str2c(name), str2c(value), 0, terminal_node)
         return Node(terminal_node[0], self)
-
 
 
 class Node:
@@ -124,12 +127,15 @@ class Node:
     def is_root(self):
         return self._data.parent == ffi.NULL
 
-    def __setattr__(self, name: str, value: str):
+    def __setattr__(self, name: str, value: str): # expand to create for lists
         # if name in self.__dict__.keys():
         if name.startswith('_'):  # TODO: change this
             self.__dict__[name] = value
         else:
-            _test.lib.lyd_change_term(self.__getattr__(name)._data, str2c(value))
+            if name in self.get_children():
+                _test.lib.lyd_change_term(self.__getattr__(name)._data, str2c(value))
+            else:
+                self._context.create_terminal_node(self, name, value)
 
     def __getattr__(self, name: str):
         match name:
@@ -149,7 +155,7 @@ class Node:
                         return node
                 raise Exception("child does not exist...")
 
-    def __getitem__(self, name: Union[str, tuple]):
+    def __getitem__(self, name: Union[str, int, tuple]):
         key_set = _test.lib.get_list_keys_from_data_node(self._data)
         list_keys = []
 
@@ -169,14 +175,20 @@ class Node:
 
         return self._parent.get_node_at_xpath(constructed_xpath)
 
+    def __eq__(self, other):
+        if isinstance(other, Node):
+            return self._data == other._data
+        if isinstance(other, str):  # temp, only used for get_children()
+            return other == self._name
+
     def __str__(self):
         return f"{self._xpath} = {self._value}"
 
-    def get_list_keys(self):
-        _test.lib.get_list_keys_from_data_node(self._data)
-
     def print(self):
         _test.lib.print_node(self._data)
+
+    def get_list_keys(self):
+        _test.lib.get_list_keys_from_data_node(self._data)
 
     def get_following_nodes(self):
         next_node = self._data
@@ -184,10 +196,10 @@ class Node:
             if next_node := _test.lib.get_next_node(next_node):
                 yield Node(next_node, self._context)
 
-    def get_node_at_xpath(self, xpath):
+    def get_node_at_xpath(self, xpath: str):
         return Node(_test.lib.get_node_at_xpath(self._data, str2c(xpath)), self._context)
 
-    def get_value_at_xpath(self, xpath):
+    def get_value_at_xpath(self, xpath: str):
         node = self.get_node_at_xpath(xpath)
         return node._value if node else None
 
@@ -197,9 +209,8 @@ class Node:
             yield Node(child, self._context)
             child = _test.lib.get_sibling(child)
 
-    def __eq__(self, other):
-        if isinstance(other, Node):
-            return self._data == other._data
+    def create(self, name: str, values: Union[str, int, tuple, list]):
+        return self._context.create_list_node(self, name, values)
 
 
 class LeafNode(Node):

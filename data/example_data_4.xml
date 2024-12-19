@@ -2,7 +2,6 @@
     <name>GigabitEthernet1</name>
     <subinterface>123</subinterface>
     <ipv4-address>1.1.1.1</ipv4-address>
-    <mtu>1500</mtu>
     <neighbour>
       <address>1.1.1.2</address>
       <vrf>VRF_2</vrf>

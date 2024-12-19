@@ -79,6 +79,10 @@ module example {
         }
         default DOWN;
       }
+
+      leaf information {
+        type string;
+      }
     }
 
   }
