@@ -1,0 +1,18 @@
+<interface xmlns="http://example.com/example">
+    <name>GigabitEthernet1</name>
+    <subinterface>123</subinterface>
+    <ipv4-address>1.1.1.1</ipv4-address>
+    <mtu>1500</mtu>
+    <neighbour>
+      <address>1.1.1.2</address>
+      <vrf>VRF_2</vrf>
+      <interface>GigabitEthernet2</interface>
+      <state>UP</state>
+    </neighbour>
+    <neighbour>
+      <address>1.1.1.3</address>
+      <vrf>VRF_3</vrf>
+      <interface>GigabitEthernet3</interface>
+      <state>DOWN</state>
+    </neighbour>
+</interface>

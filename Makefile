@@ -1,4 +1,7 @@
-PYTHON := $(shell pyenv which python)
+SHELL := /bin/bash
+PYTHON := $(shell source ~/.bashrc && pyenv which python)
+
+export PYTHONPATH := $(PWD)
 
 setup: compile-libyang
 	pyenv install 3.13.0
@@ -13,10 +16,13 @@ build:
 	cd bindings && python builder.py
 
 run-mixed-libyang-with-bindings: build
-	python bindings/debug_mixed_libyang_python.py
+	python extra/debug_mixed_libyang_python.py
 
 run-custom-bindings: build
-	python bindings/use_custom_bindings.py
+	python use_custom_bindings.py
 
 valgrind: build
-	PYTHONMALLOC=malloc valgrind --leak-check=full --show-leak-kinds=all $(PYTHON) bindings/use_custom_bindings.py
+	PYTHONMALLOC=malloc valgrind --leak-check=full --show-leak-kinds=all $(PYTHON) use_custom_bindings.py
+
+test:
+	pytest -s -vv tests/*

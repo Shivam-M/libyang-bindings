@@ -6,6 +6,13 @@ module example {
     prefix inet;
   }
 
+  // container other {
+  //   leaf name {
+  //     type string;
+  //     default "HELLO";
+  //   }
+  // }
+
   container interface {
     leaf name {
       type string;

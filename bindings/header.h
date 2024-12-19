@@ -174,6 +174,7 @@ void lyd_free_all(struct lyd_node *node);
 void lyd_free_tree(struct lyd_node *node);
 
 struct lyd_node * lyd_parent(const struct lyd_node *node);
+LY_ERR lyd_change_term(struct lyd_node *term, const char *val_str);
 
 ////////////////////////////
 void free(void *ptr);

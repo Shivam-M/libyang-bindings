@@ -76,7 +76,7 @@ if differences:
 else:
     print(f"{DATA_FILE_1} and {DATA_FILE_2} are the same")
 
-import _test
+from bindings import _test
 
 def print_nodes_with_custom_c_function(data_tree: Optional[DNode]):
     for node in data_tree:

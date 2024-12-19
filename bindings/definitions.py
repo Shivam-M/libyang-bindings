@@ -1,6 +1,6 @@
 import os
-import _test
-from _test import ffi
+from bindings import _test
+from bindings._test import ffi
 from typing import Union
 
 
@@ -123,6 +123,13 @@ class Node:
 
     def is_root(self):
         return self._data.parent == ffi.NULL
+
+    def __setattr__(self, name: str, value: str):
+        # if name in self.__dict__.keys():
+        if name.startswith('_'):  # TODO: change this
+            self.__dict__[name] = value
+        else:
+            _test.lib.lyd_change_term(self.__getattr__(name)._data, str2c(value))
 
     def __getattr__(self, name: str):
         match name:

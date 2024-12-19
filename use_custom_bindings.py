@@ -1,5 +1,5 @@
 import json
-from definitions import Context, Test
+from bindings.definitions import Context, Test
 
 YANG_PATHS = "yang"
 context = Context()
@@ -69,6 +69,7 @@ for node in data_tree_4.get_following_nodes():
 
 print("\n* get multi-key item from leaf-list: ")
 specific_neighbour = data_tree_4.neighbour["1.1.1.2", "VRF_2", "GigabitEthernet2"]
+specific_neighbour.state = "DOWN"
 [child.print() for child in specific_neighbour.get_children()]
 
 # Move to using __del__ and/or ffi.gc:
