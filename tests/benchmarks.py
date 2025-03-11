@@ -47,6 +47,8 @@ def benchmark_large_retrievals():
 
 if __name__ == "__main__":
     print(f"* {CALL_COUNT=}")
+    print(f"{"- name -":-<42} total ----- average -")
     for name, method in BENCHMARKS.items():
         time_taken = timeit(method, number=CALL_COUNT)
-        print(f"{name:.<40}{time_taken:.6f}s")
+        print(f"{name: <40} {time_taken:.6f}s | {time_taken / CALL_COUNT:.8f}s")
+    print("-" * 64)
