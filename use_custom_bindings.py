@@ -84,6 +84,9 @@ for node in data_tree_4.get_following_nodes():
     if node._value:
         print(f"{node._xpath} = {node._value}")
 
+print(f"\n* dump xml tree {DATA_FILE_4}")
+data_tree_4.print_tree()
+
 # Move to using __del__ and/or ffi.gc:
 data_tree_1.free()
 data_tree_2.free()

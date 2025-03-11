@@ -177,6 +177,8 @@ struct lyd_node * lyd_parent(const struct lyd_node *node);
 LY_ERR lyd_change_term(struct lyd_node *term, const char *val_str);
 LY_ERR lyd_validate_all(struct lyd_node **tree, const struct ly_ctx *ctx, uint32_t val_opts, struct lyd_node **diff);
 
+LY_ERR lyd_print_all(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
+LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 ////////////////////////////
 void free(void *ptr);
 ///

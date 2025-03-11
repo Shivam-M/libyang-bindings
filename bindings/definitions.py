@@ -117,6 +117,11 @@ class Node:
     # def __del__(self):
     #     self.free()
 
+    def print_tree(self, output=os.sys.stdout):
+        ly_out = ffi.new("struct ly_out**")
+        _test.lib.ly_out_new_fd(output.fileno(), ly_out)
+        _test.lib.lyd_print_tree(ly_out[0], self._data, _test.lib.LYD_XML, 0)
+
     def free(self):
         if self._data:
             if self.is_root():
@@ -127,7 +132,7 @@ class Node:
     def is_root(self):
         return self._data.parent == ffi.NULL
 
-    def __setattr__(self, name: str, value: str): # expand to create for lists
+    def __setattr__(self, name: str, value: str):
         # if name in self.__dict__.keys():
         if name.startswith('_'):  # TODO: change this
             self.__dict__[name] = value
@@ -209,7 +214,7 @@ class Node:
             yield Node(child, self._context)
             child = _test.lib.get_sibling(child)
 
-    def create(self, name: str, values: Union[str, int, tuple, list]):
+    def create(self, name: str, values: Union[str, int, tuple, list]):  # replace with *args?
         return self._context.create_list_node(self, name, values)
 
 
