@@ -117,10 +117,10 @@ class Node:
     # def __del__(self):
     #     self.free()
 
-    def print_tree(self, output=os.sys.stdout):
+    def print_tree(self, output=os.sys.stdout, all=True):
         ly_out = ffi.new("struct ly_out**")
         _test.lib.ly_out_new_fd(output.fileno(), ly_out)
-        _test.lib.lyd_print_tree(ly_out[0], self._data, _test.lib.LYD_XML, 0)
+        _test.lib.lyd_print_tree(ly_out[0], self._data, _test.lib.LYD_XML, 0 if not all else 0x20)
 
     def free(self):
         if self._data:

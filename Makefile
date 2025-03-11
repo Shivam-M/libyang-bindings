@@ -21,6 +21,9 @@ run-mixed-libyang-with-bindings: build
 run-custom-bindings: build
 	python use_custom_bindings.py
 
+benchmark: build
+	python tests/benchmarks.py
+
 valgrind: build
 	PYTHONMALLOC=malloc valgrind --leak-check=full --show-leak-kinds=all $(PYTHON) use_custom_bindings.py
 

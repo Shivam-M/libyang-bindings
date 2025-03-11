@@ -179,6 +179,17 @@ LY_ERR lyd_validate_all(struct lyd_node **tree, const struct ly_ctx *ctx, uint32
 
 LY_ERR lyd_print_all(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
+
+
+#define LYD_PRINT_WITHSIBLINGS  0x01
+#define LYD_PRINT_KEEPEMPTYCONT 0x04
+#define LYD_PRINT_WD_MASK       0xF0
+#define LYD_PRINT_WD_EXPLICIT   0x00
+#define LYD_PRINT_WD_TRIM       0x10
+#define LYD_PRINT_WD_ALL        0x20
+#define LYD_PRINT_WD_ALL_TAG    0x40
+#define LYD_PRINT_WD_IMPL_TAG   0x80
+
 ////////////////////////////
 void free(void *ptr);
 ///
