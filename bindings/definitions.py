@@ -2,6 +2,7 @@ import os
 from bindings import _test
 from bindings._test import ffi
 from typing import Union
+from enum import Enum
 
 
 def str2c(py_string):
@@ -12,6 +13,20 @@ def c2str(c_string, free=False):
     if (free and py_string):
         _test.lib.free(c_string)
     return py_string
+
+
+class NodeType(Enum):
+    LEAF = 0
+    LIST = 1
+    LEAF_LIST = 2
+    CONTAINER = 3
+    OTHER = 4
+
+NODE_TYPES = {
+    1: NodeType.CONTAINER,
+    4: NodeType.LEAF,
+    16: NodeType.LIST
+}
 
 
 class Module:
@@ -113,6 +128,7 @@ class Node:
     def __init__(self, data, context: Context) -> None:
         self._data = data
         self._context = context
+        self._type = self._resolve_type()
     
     # def __del__(self):
     #     self.free()
@@ -132,13 +148,18 @@ class Node:
     def is_root(self):
         return self._data.parent == ffi.NULL
 
+    def _resolve_type(self):
+        if self._data:
+            return NODE_TYPES.get(self._data.schema.nodetype, -1)
+
+
     def __setattr__(self, name: str, value: str):
         # if name in self.__dict__.keys():
         if name.startswith('_'):  # TODO: change this
             self.__dict__[name] = value
         else:
             if name in self.get_children():
-                _test.lib.lyd_change_term(self.__getattr__(name)._data, str2c(value))
+                _test.lib.lyd_change_term(self.get_child_by_name(name)._data, str2c(value))
             else:
                 self._context.create_terminal_node(self, name, value)
 
@@ -155,9 +176,10 @@ class Node:
                     return Node(parent_node_data, self._context)
                 return
             case _:
-                for node in self.get_children():
-                    if name == node._name:
-                        return node
+                if node := self.get_child_by_name(name):
+                    if node._type == NodeType.LEAF:
+                        return node._value
+                    return node
                 raise Exception("child does not exist...")
 
     def __getitem__(self, name: Union[str, int, tuple]):
@@ -213,6 +235,11 @@ class Node:
         while child:
             yield Node(child, self._context)
             child = _test.lib.get_sibling(child)
+
+    def get_child_by_name(self, name: str):  # either use this to get child leaf nodes or return if begins/ends with _ in getattr
+        for node in self.get_children():
+            if name == node._name:
+                return node
 
     def create(self, name: str, values: Union[str, int, tuple, list]):  # replace with *args?
         return self._context.create_list_node(self, name, values)

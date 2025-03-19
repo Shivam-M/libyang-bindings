@@ -47,8 +47,8 @@ def benchmark_children_retrievals():
     data_tree = create_context().load_data("data/example_data_5.xml")
 
     for rule in data_tree.access_list.get_children():
-        _ = rule.endpoint._value
-        _ = rule.action._value
+        _ = rule.endpoint
+        _ = rule.action
 
 
 @benchmark
@@ -57,8 +57,8 @@ def benchmark_xpath_node_retrievals():
 
     for address in IPv4Network("192.168.1.0/24").hosts():
         rule = data_tree.get_node_at_xpath(f"/example:interface/access-list/rule[endpoint='{address}']")
-        _ = rule.endpoint._value
-        _ = rule.action._value
+        _ = rule.endpoint
+        _ = rule.action
 
 
 @benchmark
@@ -91,6 +91,14 @@ def benchmark_evaluate_differences():
     data_tree_2 = context.load_data("data/example_data_5.xml")
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
     _ = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
+
+
+@benchmark
+def benchmark_retrieve_leaf():
+    context = create_context()
+    data_tree_1 = context.load_data("data/example_data_3.xml")
+    data_tree_1.name = "FastEthernet24"
+    _  = data_tree_1.name
 
 
 if __name__ == "__main__":

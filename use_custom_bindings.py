@@ -87,12 +87,17 @@ for node in data_tree_4.get_following_nodes():
 print(f"\n* dump xml tree {DATA_FILE_4}")
 data_tree_4.print_tree()
 
+print("\n* node types: ")
+print(f"{data_tree_4._type=}")
+print(f"{new_neighbour._type=}")
+print(f"{specific_rule.get_child_by_name("endpoint")._type=}")
+
 # Move to using __del__ and/or ffi.gc:
-data_tree_1.free()
-data_tree_2.free()
-data_tree_4.free()
-diff_tree.free()
-context.free()
+# data_tree_1.free()
+# data_tree_2.free()
+# data_tree_4.free()
+# diff_tree.free()
+# context.free()
 
 # Test.print_nodes_recursively(data_tree_2)
 

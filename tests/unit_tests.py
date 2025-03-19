@@ -19,7 +19,7 @@ def test_change_node_value(context):
     interface.name = "TenGigabitEthernet99"
 
     # Assert
-    assert interface.name._value == "TenGigabitEthernet99"
+    assert interface.name == "TenGigabitEthernet99"
 
 
 def test_create_node_value(context):
@@ -31,7 +31,7 @@ def test_create_node_value(context):
     interface.mtu = 1234
 
     # Assert
-    assert interface.mtu._value == "1234"  # TODO: Add type casting based on data type in schema
+    assert interface.mtu == "1234"  # TODO: Add type casting based on data type in schema
 
 
 def test_differences_exact_match(context):
@@ -95,7 +95,7 @@ def test_retrieve_list_element_single_key(context):
     rule = data_tree.access_list.rule["1.1.1.1"]
 
     # Assert
-    assert rule.action._value == "DENY"
+    assert rule.action == "DENY"
 
 
 def test_retrieve_list_element_multiple_keys(context):
@@ -107,8 +107,8 @@ def test_retrieve_list_element_multiple_keys(context):
     second_neighbour = data_tree.neighbour["1.1.1.3", "VRF_3", "GigabitEthernet3"]
 
     # Assert
-    assert first_neighbour.state._value == "UP"
-    assert second_neighbour.state._value == "DOWN"
+    assert first_neighbour.state == "UP"
+    assert second_neighbour.state == "DOWN"
 
 
 def test_create_list_element_single_key(context):
@@ -121,7 +121,7 @@ def test_create_list_element_single_key(context):
 
     # Assert
     assert rule in access_list.get_children()
-    assert rule.action._value == "DEFAULT"
+    assert rule.action == "DEFAULT"
 
 
 def test_create_list_element_multiple_keys(context):
@@ -135,5 +135,5 @@ def test_create_list_element_multiple_keys(context):
 
     # Assert
     assert neighbour in data_tree.get_children()
-    assert neighbour.state._value == "UP"
-    assert neighbour.information._value == "This was created at runtime"
+    assert neighbour.state == "UP"
+    assert neighbour.information == "This was created at runtime"
