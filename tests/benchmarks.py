@@ -6,9 +6,11 @@ CALL_COUNT = 100
 BENCHMARKS = {}
 
 def benchmark(method):
-    BENCHMARKS[method.__name__] = method
-    return method
-
+    def wrapper():
+        context = create_context()
+        return method(context)
+    BENCHMARKS[method.__name__] = wrapper
+    return wrapper
 
 def create_context():
     context = Context()
@@ -18,43 +20,40 @@ def create_context():
 
 
 @benchmark
-def benchmark_load_context():
-    create_context()
+def benchmark_load_context(context):
+    _ = context
 
 
 @benchmark
-def benchmark_single_creation():
-    data_tree = create_context().load_data("data/example_data_4.xml")
+def benchmark_single_creation(context):
+    data_tree = context.load_data("data/example_data_4.xml")
     data_tree.mtu = 9000
 
 
 @benchmark
-def benchmark_single_addition():
-    data_tree = create_context().load_data("data/example_data_3b.xml")
+def benchmark_single_addition(context):
+    data_tree = context.load_data("data/example_data_3b.xml")
     data_tree.access_list.create("rule", "192.168.1.1")
 
 
 @benchmark
-def benchmark_additions():
-    data_tree = create_context().load_data("data/example_data_3b.xml")
-
+def benchmark_additions(context):
+    data_tree = context.load_data("data/example_data_3b.xml")
     for address in IPv4Network("192.168.1.0/24").hosts():
         data_tree.access_list.create("rule", str(address)).action = "ALLOW"
 
 
 @benchmark
-def benchmark_children_retrievals():
-    data_tree = create_context().load_data("data/example_data_5.xml")
-
+def benchmark_children_retrievals(context):
+    data_tree = context.load_data("data/example_data_5.xml")
     for rule in data_tree.access_list.get_children():
         _ = rule.endpoint
         _ = rule.action
 
 
 @benchmark
-def benchmark_xpath_node_retrievals():
-    data_tree = create_context().load_data("data/example_data_5.xml")
-
+def benchmark_xpath_node_retrievals(context):
+    data_tree = context.load_data("data/example_data_5.xml")
     for address in IPv4Network("192.168.1.0/24").hosts():
         rule = data_tree.get_node_at_xpath(f"/example:interface/access-list/rule[endpoint='{address}']")
         _ = rule.endpoint
@@ -62,31 +61,28 @@ def benchmark_xpath_node_retrievals():
 
 
 @benchmark
-def benchmark_xpath_value_retrievals():
-    data_tree = create_context().load_data("data/example_data_5.xml")
-
+def benchmark_xpath_value_retrievals(context):
+    data_tree = context.load_data("data/example_data_5.xml")
     for address in IPv4Network("192.168.1.0/24").hosts():
         _ = data_tree.get_value_at_xpath(f"/example:interface/access-list/rule[endpoint='{address}']/endpoint")
         _ = data_tree.get_value_at_xpath(f"/example:interface/access-list/rule[endpoint='{address}']/action")
 
 
 @benchmark
-def benchmark_list_keys_retrievals():
-    data_tree = create_context().load_data("data/example_data_4.xml")
+def benchmark_list_keys_retrievals(context):
+    data_tree = context.load_data("data/example_data_4.xml")
     data_tree.neighbour.get_list_keys()
 
 
 @benchmark
-def benchmark_get_differences():
-    context = create_context()
+def benchmark_get_differences(context):
     data_tree_1 = context.load_data("data/example_data_2.xml")
     data_tree_2 = context.load_data("data/example_data_5.xml")
     _ = context.get_differences(data_tree_1, data_tree_2)
 
 
 @benchmark
-def benchmark_evaluate_differences():
-    context = create_context()
+def benchmark_evaluate_differences(context):
     data_tree_1 = context.load_data("data/example_data_2.xml")
     data_tree_2 = context.load_data("data/example_data_5.xml")
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
@@ -94,11 +90,10 @@ def benchmark_evaluate_differences():
 
 
 @benchmark
-def benchmark_retrieve_leaf():
-    context = create_context()
+def benchmark_retrieve_leaf(context):
     data_tree_1 = context.load_data("data/example_data_3.xml")
     data_tree_1.name = "FastEthernet24"
-    _  = data_tree_1.name
+    _ = data_tree_1.name
 
 
 if __name__ == "__main__":
