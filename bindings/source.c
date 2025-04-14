@@ -1,4 +1,5 @@
 #include <libyang/libyang.h>
+#include <cjson/cJSON.h>
 
 struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node) {
     struct lyd_node* diff_node;
@@ -72,6 +73,51 @@ struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
     ly_set_free(set, NULL);
 
     return found_node;
+}
+
+char* evaluate_differences(struct lyd_node* first_node, struct lyd_node* second_node, struct lyd_node* diff_node) {
+    struct lyd_node* current_node = diff_node;
+    cJSON* changes = cJSON_CreateObject();
+
+    while (current_node) {
+        char* xpath = lyd_path(current_node, LYD_PATH_STD, NULL, 0);
+        const char* value_first = lyd_get_value(get_node_at_xpath(first_node, xpath));
+        const char* value_second = lyd_get_value(get_node_at_xpath(second_node, xpath));
+        const char* value_diff = lyd_get_value(current_node);
+
+        if (!value_diff || (value_first && value_second && strcmp(value_first, value_second) == 0)) {
+            current_node = get_next_node(current_node);
+            free(xpath);
+            continue;
+        }
+
+        cJSON* change = cJSON_CreateObject();
+
+        if (value_first) {
+            cJSON_AddStringToObject(change, "action", "removed");
+            cJSON_AddStringToObject(change, "old_value", value_first);
+        }
+
+        if (value_second) {
+            cJSON_AddStringToObject(change, "action", "created");
+            cJSON_AddStringToObject(change, "new_value", value_second);
+        }
+
+        if (value_first && value_second) {
+            // cJSON_ReplaceItemInObject(change, "action", cJSON_CreateString("changed"));
+            cJSON_DeleteItemFromObject(change, "action");
+            cJSON_AddStringToObject(change, "action", "changed");
+        }
+
+        cJSON_AddItemToObject(changes, xpath, change);
+
+        free(xpath);
+        current_node = get_next_node(current_node);
+    }
+
+    char* changes_str = cJSON_Print(changes);
+    cJSON_Delete(changes);
+    return changes_str;
 }
 
 struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node) {

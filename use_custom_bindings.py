@@ -28,19 +28,28 @@ for node in data_tree_2.get_following_nodes():
     if node._value:
         print(f"{node._xpath} = {node._value}")
 
+def print_differences(differences):
+    for xpath, change in differences.items():
+        action = change["action"]
+        if action == "changed":
+            print(f"{xpath} = \t\u001b[37;43m\u001b[30m CHANGED \033[0m {change["old_value"]} -> {change["new_value"]}")
+        elif action == "removed":
+            print(f"{xpath} = \t\u001b[37;41m\u001b[30m REMOVED \033[0m {change["old_value"]}")
+        elif action == "created":
+            print(f"{xpath} = \t\u001b[37;42m\u001b[30m CREATED \033[0m {change["new_value"]}")
+
+print(f"\n* differences from {DATA_FILE_3} -> {DATA_FILE_3B}: ")
 diff_tree = context.get_differences(data_tree_1, data_tree_2)
 differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
 # print(json.dumps(differences, indent=4))
+print_differences(differences)
 
-print(f"\n* differences from {DATA_FILE_3} -> {DATA_FILE_3B}: ")
-for xpath, change in differences.items():
-    action = change["action"]
-    if action == "changed":
-        print(f"{xpath} = \t\u001b[37;43m\u001b[30m CHANGED \033[0m {change["old_value"]} -> {change["new_value"]}")
-    elif action == "removed":
-        print(f"{xpath} = \t\u001b[37;41m\u001b[30m REMOVED \033[0m {change["old_value"]}")
-    elif action == "created":
-        print(f"{xpath} = \t\u001b[37;42m\u001b[30m CREATED \033[0m {change["new_value"]}")
+print(f"\n* [C method] differences from {DATA_FILE_3} -> {DATA_FILE_3B}: ")
+differences_c = json.loads(Test.evaluate_differences_c(data_tree_1, data_tree_2, diff_tree))
+# print(json.dumps(differences_c, indent=4))
+print_differences(differences_c)
+
+assert differences == differences_c
 
 access_list_node = data_tree_2.get_node_at_xpath("/example:interface/access-list")
 new_rule = context.create_list_node(access_list_node, "rule", ["7.7.7.7"])

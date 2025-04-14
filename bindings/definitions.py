@@ -1,4 +1,5 @@
 import os
+import json
 from bindings import _test
 from bindings._test import ffi
 from typing import Union
@@ -80,12 +81,18 @@ class Context:
     def get_differences(self, first_node, second_node):
         return Node(_test.lib.get_differences(first_node._data, second_node._data), self)
 
-    def evaluate_differences(self, first_node, second_node, diff_node):
+    def evaluate_differences(self, first_node, second_node, diff_node, c_version=False):
+        if c_version:
+            return json.loads(Test.evaluate_differences_c(first_node, second_node, diff_node))
         changes = {}
         for node in diff_node.get_following_nodes():
             xpath = node._xpath
             value_first = first_node.get_value_at_xpath(xpath)
             value_second = second_node.get_value_at_xpath(xpath)
+
+            if value_first == value_second:
+                continue
+
             changes[xpath] = {}
 
             if value_first:
@@ -99,8 +106,6 @@ class Context:
             if value_first and value_second:
                 changes[xpath]["action"] = "changed"
 
-            if value_first == value_second:
-                del changes[xpath]
         return changes
     
     ## move create/add methods to leaflistnode
@@ -129,6 +134,7 @@ class Node:
         self._data = data
         self._context = context
         self._type = self._resolve_type()
+        self.__value = None
     
     # def __del__(self):
     #     self.free()
@@ -170,6 +176,9 @@ class Node:
             case "_xpath":
                 return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=True)  # store instead?
             case "_value":
+                # if not self.__value:
+                #     self.__value = c2str(_test.lib.lyd_get_value(self._data))
+                # return self.__value
                 return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
                 if parent_node_data := _test.lib.lyd_parent(self._data):
@@ -272,3 +281,6 @@ class ContainerNode(Node):
 class Test:
     def print_nodes_recursively(node: Node):
         _test.lib.print_nodes_recursively(node._data)
+
+    def evaluate_differences_c(node: Node, node2: Node, node3: Node):
+        return c2str(_test.lib.evaluate_differences(node._data, node2._data, node3._data), free=True)

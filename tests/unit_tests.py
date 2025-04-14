@@ -47,14 +47,15 @@ def test_differences_exact_match(context):
     assert differences == {}
 
 
-def test_differences_changed_removed_created(context):
+@pytest.mark.parametrize("c_version", [True, False], ids=["logic-c", "logic-python"])
+def test_differences_changed_removed_created(context, c_version):
     # Arrange
     data_tree_1 = context.load_data("data/example_data_3.xml")
     data_tree_2 = context.load_data("data/example_data_3b.xml")
 
     # Act
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
-    differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
+    differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree, c_version=c_version)
 
     # Assert
     assert differences == {

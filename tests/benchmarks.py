@@ -90,6 +90,14 @@ def benchmark_evaluate_differences(context):
 
 
 @benchmark
+def benchmark_evaluate_differences_c(context):
+    data_tree_1 = context.load_data("data/example_data_2.xml")
+    data_tree_2 = context.load_data("data/example_data_5.xml")
+    diff_tree = context.get_differences(data_tree_1, data_tree_2)
+    _ = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree, c_version=True)
+
+
+@benchmark
 def benchmark_retrieve_leaf(context):
     data_tree_1 = context.load_data("data/example_data_3.xml")
     data_tree_1.name = "FastEthernet24"

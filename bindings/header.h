@@ -1,3 +1,5 @@
+//////////////////////////// LIBYANG DECLARATIONS
+
 typedef enum {
     LY_SUCCESS,
     LY_EMEM,
@@ -190,9 +192,43 @@ LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node *root, LYD_FORMA
 #define LYD_PRINT_WD_ALL_TAG    0x40
 #define LYD_PRINT_WD_IMPL_TAG   0x80
 
-////////////////////////////
+//////////////////////////// cJSON DECLARATIONS
+
+#define cJSON_False 0
+#define cJSON_True 1
+#define cJSON_NULL 2
+#define cJSON_Number 3
+#define cJSON_String 4
+#define cJSON_Array 5
+#define cJSON_Object 6
+#define cJSON_Raw 7
+
+typedef struct cJSON {
+    struct cJSON *next;
+    struct cJSON *prev;
+    struct cJSON *child;
+
+    int type;
+    char *valuestring;
+    int valueint;
+    double valuedouble;
+
+    char *string;
+} cJSON;
+
+struct cJSON* cJSON_CreateObject(void);
+void cJSON_AddStringToObject(struct cJSON *object, const char *name, const char *string);
+void cJSON_ReplaceItemInObject(struct cJSON *object, const char *name, struct cJSON *newitem);
+void cJSON_DeleteItemFromObject(struct cJSON *object, const char *name);
+void cJSON_AddItemToObject(struct cJSON *object, const char *name, struct cJSON *item);
+char* cJSON_Print(const struct cJSON *item);
+void cJSON_Delete(struct cJSON *item);
+
+//////////////////////////// OTHER DECLARATIONS
+
 void free(void *ptr);
-///
+
+//////////////////////////// CUSTOM DECLARATIONS
 
 struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node);
 struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
@@ -200,6 +236,7 @@ struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
 struct lyd_node* get_sibling(struct lyd_node* node);
 
+char* evaluate_differences(struct lyd_node* first_node, struct lyd_node* second_node, struct lyd_node* diff_node);
 void free_list_keys(struct ly_set* key_set);
 void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);
