@@ -1,16 +1,23 @@
 SHELL := /bin/bash
 PYTHON := $(shell source ~/.bashrc && pyenv which python)
+PYTHON_VERSION = 3.13.0
 
 export PYTHONPATH := $(PWD)
 
-setup: compile-libyang
-	pyenv install 3.13.0
-	pyenv virtualenv 3.13.0 libyang-cffi-playground
+check-python:
+	@if pyenv versions | grep -q $(PYTHON_VERSION); then \
+		echo "Python $(PYTHON_VERSION) is already installed."; \
+	else \
+		pyenv install $(PYTHON_VERSION); \
+	fi
+
+setup: compile-libraries check-python
+	pyenv virtualenv $(PYTHON_VERSION) libyang-cffi-playground
 	pyenv local libyang-cffi-playground
 	pip install -r extra/requirements.txt
 
-compile-libyang:
-	extra/build_libyang.sh
+compile-libraries:  # libyang and cJSON
+	extra/build_libraries.sh
 
 build:
 	cd bindings && python builder.py
