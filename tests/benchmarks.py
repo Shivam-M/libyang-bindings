@@ -37,10 +37,19 @@ def benchmark_single_addition(context):
 
 
 @benchmark
-def benchmark_additions(context):
+def benchmark_additions_validate_each(context):
     data_tree = context.load_data("data/example_data_3b.xml")
     for address in IPv4Network("192.168.1.0/24").hosts():
         data_tree.access_list.create("rule", str(address)).action = "ALLOW"
+
+
+@benchmark
+def benchmark_additions_validate_once(context):
+    data_tree = context.load_data("data/example_data_3b.xml")
+    context.validate_after_list_creation = False
+    for address in IPv4Network("192.168.1.0/24").hosts():
+        data_tree.access_list.create("rule", str(address)).action = "ALLOW"
+    context.validate(data_tree._data)
 
 
 @benchmark

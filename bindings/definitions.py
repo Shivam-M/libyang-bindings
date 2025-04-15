@@ -47,6 +47,7 @@ class Context:
         context_pointer = ffi.new("struct ly_ctx**")
         _test.lib.ly_ctx_new(ffi.NULL, _test.lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
         self._data = context_pointer[0]
+        self.validate_after_list_creation = True
 
     # def __del__(self):
     #     self.free()
@@ -92,9 +93,14 @@ class Context:
 
         list_node = ffi.new("struct lyd_node**")
         _test.lib.lyd_new_list(parent._data, ffi.NULL, str2c(name), 0, list_node, *[str2c(value) for value in values])
-        _test.lib.lyd_validate_all(list_node, self._data, 0, ffi.NULL)
-        # _test.lib.lyd_validate_module(list_node, list_node[0].schema.module, 0, ffi.NULL)
+
+        if self.validate_after_list_creation:  # validate after to create default nodes
+            self.validate(list_node[0])
+
         return Node(list_node[0], self)
+
+    def validate(self, node):  # todo: move some methods to Node class
+        _test.lib.lyd_validate_all(ffi.new("struct lyd_node**", node), self._data, 0, ffi.NULL)
 
     def create_inner_node(self, parent, name):
         inner_node = ffi.new("struct lyd_node**")
@@ -222,10 +228,22 @@ class Node:
             yield Node(child, self._context)
             child = _test.lib.get_sibling(child)
 
-    def get_child_by_name(self, name: str):  # either use this to get child leaf nodes or return if begins/ends with _ in getattr
-        for node in self.get_children():
-            if name == node._name:
-                return node
+    def get_children_cdata(self):
+        child = _test.lib.lyd_child(self._data)
+        while child:
+            yield child
+            child = _test.lib.get_sibling(child)
+
+    def get_child_by_name(self, name: str):
+        for child in self.get_children_cdata():
+            child_name = c2str(child.schema.name).replace('-', '_').lower()
+            if child_name == name:
+                return Node(child, self._context)
+
+    # def get_child_by_name(self, name: str):  # either use this to get child leaf nodes or return if begins/ends with _ in getattr
+    #     for node in self.get_children():
+    #         if name == node._name:
+    #             return node
 
     def create(self, name: str, values: Union[str, int, tuple, list]):  # replace with *args?
         return self._context.create_list_node(self, name, values)
