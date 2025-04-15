@@ -285,8 +285,8 @@ class Test:
         for xpath, change in differences.items():
             action = change["action"]
             if action == "changed":
-                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.CYAN}{Back.BLACK} CHANGED {Back.RESET} {change["old_value"]} {Style.DIM}->{Style.NORMAL} {change["new_value"]}")
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.CYAN}{Back.BLACK}{Style.DIM}[{Style.NORMAL}*{Style.DIM}]{Style.NORMAL}{Back.RESET} {change["old_value"]} {Style.DIM}->{Style.NORMAL} {change["new_value"]}")
             elif action == "removed":
-                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.RED}{Back.BLACK} REMOVED {Back.RESET} {change.get("old_value", "")}")
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.RED}{Back.BLACK}{Style.DIM}[{Style.NORMAL}-{Style.DIM}]{Style.NORMAL}{Back.RESET} {change.get("old_value", "")}")
             elif action == "created":
-                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.GREEN}{Back.BLACK} CREATED {Back.RESET} {change.get("new_value", "")}")
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.GREEN}{Back.BLACK}{Style.DIM}[{Style.NORMAL}+{Style.DIM}]{Style.NORMAL}{Back.RESET} {change.get("new_value", "")}")
