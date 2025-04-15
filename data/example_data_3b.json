@@ -1,25 +1,45 @@
 {
     "example:interface": {
-        "name": "FastEthernet4",
-        "subinterface": "444",
-        "shutdown": false,
-        "ipv4-address": "4.4.4.4",
-        "mtu": 4444,
-        "access-list": {
-            "rule": [
-                {
-                    "endpoint": "1.1.1.1",
-                    "action": "DENY"
-                },
-                {
-                    "endpoint": "2.2.2.2",
-                    "action": "ALLOW"
-                },
-                {
-                    "endpoint": "5.5.5.5",
-                    "action": "DEFAULT"
-                }
+      "name": "FastEthernet4",
+      "subinterface": "444",
+      "shutdown": false,
+      "ipv4-address": "4.4.4.4",
+      "mtu": 4444,
+      "access-list": {
+        "rule": [
+          {
+            "endpoint": "1.1.1.1",
+            "action": "DENY"
+          },
+          {
+            "endpoint": "2.2.2.2",
+            "action": "ALLOW"
+          },
+          {
+            "endpoint": "5.5.5.5",
+            "action": "DEFAULT"
+          }
+        ]
+      },
+      "neighbour": [
+        {
+          "address": "1.1.1.3",
+          "vrf": "VRF_3",
+          "interface": "GigabitEthernet3",
+          "state": "DOWN",
+          "names": {
+            "name": [
+              {
+                "id": 0,
+                "name": "Ned Flanders"
+              },
+              {
+                "id": 1,
+                "name": "Maude Flanders"
+              }
             ]
+          }
         }
+      ]
     }
-}
+  }

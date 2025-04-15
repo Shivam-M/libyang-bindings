@@ -14,3 +14,27 @@ pip install -r requirements.txt
 # fixed/replaced by running pyenv python3 executable directly instead of shim
 
 valgrind --leak-check=full --show-leak-kinds=all python3 bindings/test_own_bindings.py
+
+struct diff_result get_diff_result2(struct lyd_node* node) {
+    struct diff_result diff;
+    enum lyd_diff_op operation;
+    lyd_diff_get_op(node, &operation);
+    switch (operation) {
+        case LYD_DIFF_OP_CREATE:
+            diff.operation = "created";
+            diff.new_value = lyd_get_value(node);
+            break;
+        case LYD_DIFF_OP_REPLACE:
+            diff.operation = "changed";
+            diff.old_value = get_node_metadata(node, "orig-value");
+            break;
+        case LYD_DIFF_OP_DELETE:
+            diff.operation = "removed";
+            diff.old_value = lyd_get_value(node);
+            break;
+        default:
+            diff.operation = NULL;
+            diff.old_value = NULL;
+    }
+    return diff;
+}

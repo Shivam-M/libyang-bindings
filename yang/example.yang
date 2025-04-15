@@ -83,6 +83,22 @@ module example {
       leaf information {
         type string;
       }
+
+      container names {
+        presence true;
+
+        list name {
+          key "id";
+
+          leaf id {
+            type uint16;
+          }
+
+          leaf name {
+            type string;
+          }
+        }
+      }
     }
 
   }

@@ -59,6 +59,8 @@ LY_ERR lyd_parse_data(const struct ly_ctx *, struct lyd_node *, struct ly_in *, 
 #define LY_CTX_SET_PRIV_PARSED ...
 #define LY_CTX_NO_YANGLIBRARY ...
 
+#define LYD_VALUE_FIXED_MEM_SIZE 24
+
 LY_ERR ly_ctx_get_yanglib_data(const struct ly_ctx *, struct lyd_node **, const char *, ...);
 
 
@@ -168,6 +170,46 @@ struct lysc_node {
 };
 
 
+struct lyd_meta {
+    struct lyd_node *parent;
+    struct lyd_meta *next;
+    struct lysc_ext_instance *annotation;
+    const char *name;
+    struct lyd_value value;
+};
+
+
+struct lyd_value {
+    const char *_canonical;
+    const struct lysc_type *realtype;
+
+    union {
+        int8_t boolean;
+        int64_t dec64;
+        int8_t int8;
+        int16_t int16;
+        int32_t int32;
+        int64_t int64;
+        uint8_t uint8;
+        uint16_t uint16;
+        uint32_t uint32;
+        uint64_t uint64;
+        struct lysc_type_bitenum_item *enum_item;
+        struct lysc_ident *ident;
+        struct ly_path *target;
+        struct lyd_value_union *subvalue;
+        void *dyn_mem;
+        uint8_t fixed_mem[LYD_VALUE_FIXED_MEM_SIZE];
+    };
+};
+
+// enum lyd_diff_op {
+//     LYD_DIFF_OP_CREATE,
+//     LYD_DIFF_OP_DELETE,
+//     LYD_DIFF_OP_REPLACE,
+//     LYD_DIFF_OP_NONE
+// };
+
 LY_ERR lyd_new_term(struct lyd_node *, const struct lys_module *, const char *, const char *, uint32_t, struct lyd_node **);
 LY_ERR lyd_new_inner(struct lyd_node *, const struct lys_module *, const char *, ly_bool, struct lyd_node **);
 LY_ERR lyd_new_list(struct lyd_node *, const struct lys_module *, const char *, uint32_t, struct lyd_node **node, ...);
@@ -178,10 +220,16 @@ void lyd_free_tree(struct lyd_node *node);
 struct lyd_node * lyd_parent(const struct lyd_node *node);
 LY_ERR lyd_change_term(struct lyd_node *term, const char *val_str);
 LY_ERR lyd_validate_all(struct lyd_node **tree, const struct ly_ctx *ctx, uint32_t val_opts, struct lyd_node **diff);
+LY_ERR lyd_validate_module(struct lyd_node **tree, const struct lys_module *module, uint32_t val_opts, struct lyd_node **diff);
 
 LY_ERR lyd_print_all(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 
+// not exported?
+// LY_ERR lyd_diff_get_op(const struct lyd_node *diff_node, enum lyd_diff_op *op);
+// void lyd_diff_find_meta(const struct lyd_node *node, const char *name, struct lyd_meta **meta, struct lyd_attr **attr);
+
+// struct lyd_meta* lyd_find_meta (const struct lyd_meta *first, const struct lys_module *module, const char *name);
 
 #define LYD_PRINT_WITHSIBLINGS  0x01
 #define LYD_PRINT_KEEPEMPTYCONT 0x04
@@ -236,7 +284,7 @@ struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
 struct lyd_node* get_sibling(struct lyd_node* node);
 
-char* evaluate_differences(struct lyd_node* first_node, struct lyd_node* second_node, struct lyd_node* diff_node);
+char* evaluate_differences(struct lyd_node* diff_node, bool skip_containers_and_lists);
 void free_list_keys(struct ly_set* key_set);
 void print_node(struct lyd_node* node);
 void print_nodes_recursively(struct lyd_node* node);

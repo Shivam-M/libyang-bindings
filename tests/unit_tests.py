@@ -41,21 +41,20 @@ def test_differences_exact_match(context):
 
     # Act
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
-    differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
+    differences = context.evaluate_differences(diff_tree)
 
     # Assert
     assert differences == {}
 
 
-@pytest.mark.parametrize("c_version", [True, False], ids=["logic-c", "logic-python"])
-def test_differences_changed_removed_created(context, c_version):
+def test_differences_changed_removed_created(context):
     # Arrange
     data_tree_1 = context.load_data("data/example_data_3.xml")
     data_tree_2 = context.load_data("data/example_data_3b.xml")
 
     # Act
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
-    differences = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree, c_version=c_version)
+    differences = context.evaluate_differences(diff_tree, skip_containers_and_lists=True)
 
     # Assert
     assert differences == {
@@ -84,7 +83,82 @@ def test_differences_changed_removed_created(context, c_version):
        "/example:interface/access-list/rule[endpoint='5.5.5.5']/endpoint": {
            "action": "created",
            "new_value": "5.5.5.5"
-       }
+       },
+       "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='0']/name": {
+            "action": "changed",
+            "new_value": "Ned Flanders",
+            "old_value": "Ned",
+        },
+        "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='1']/id": {
+            "action": "created",
+            "new_value": "1",
+        },
+        "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='1']/name": {
+            "action": "created",
+            "new_value": "Maude Flanders",
+        }
+   }
+
+
+def test_differences_changed_removed_created_include_containers_and_lists(context):
+    # Arrange
+    data_tree_1 = context.load_data("data/example_data_3.xml")
+    data_tree_2 = context.load_data("data/example_data_3b.xml")
+
+    # Act
+    diff_tree = context.get_differences(data_tree_1, data_tree_2)
+    differences = context.evaluate_differences(diff_tree)
+
+    # Assert
+    assert differences == {
+        "/example:interface/access-list/rule[endpoint='1.1.1.1']/action": {
+           "action": "changed",
+           "new_value": "DENY",
+           "old_value": "ALLOW"
+       },
+       "/example:interface/access-list/rule[endpoint='2.2.2.2']/action": {
+           "action": "changed",
+           "new_value": "ALLOW",
+           "old_value": "DENY"
+       },
+       "/example:interface/access-list/rule[endpoint='3.3.3.3']": {
+            "action": "removed",
+        },
+       "/example:interface/access-list/rule[endpoint='3.3.3.3']/action": {
+           "action": "removed",
+           "old_value": "DEFAULT"
+       },
+       "/example:interface/access-list/rule[endpoint='3.3.3.3']/endpoint": {
+           "action": "removed",
+           "old_value": "3.3.3.3"
+       },
+       "/example:interface/access-list/rule[endpoint='5.5.5.5']": {
+            "action": "created",
+        },
+       "/example:interface/access-list/rule[endpoint='5.5.5.5']/action": {
+           "action": "created",
+           "new_value": "DEFAULT"
+       },
+       "/example:interface/access-list/rule[endpoint='5.5.5.5']/endpoint": {
+           "action": "created",
+           "new_value": "5.5.5.5"
+       },
+       "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='0']/name": {
+            "action": "changed",
+            "new_value": "Ned Flanders",
+            "old_value": "Ned",
+        },
+        "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='1']": {
+            "action": "created",
+        },
+        "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='1']/id": {
+            "action": "created",
+            "new_value": "1",
+        },
+        "/example:interface/neighbour[address='1.1.1.3'][vrf='VRF_3'][interface='GigabitEthernet3']/names/name[id='1']/name": {
+            "action": "created",
+            "new_value": "Maude Flanders",
+        }
    }
 
 

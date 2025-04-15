@@ -86,15 +86,15 @@ def benchmark_evaluate_differences(context):
     data_tree_1 = context.load_data("data/example_data_2.xml")
     data_tree_2 = context.load_data("data/example_data_5.xml")
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
-    _ = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree)
+    _ = context.evaluate_differences(diff_tree)
 
 
 @benchmark
-def benchmark_evaluate_differences_c(context):
+def benchmark_evaluate_differences_skip(context):
     data_tree_1 = context.load_data("data/example_data_2.xml")
     data_tree_2 = context.load_data("data/example_data_5.xml")
     diff_tree = context.get_differences(data_tree_1, data_tree_2)
-    _ = context.evaluate_differences(data_tree_1, data_tree_2, diff_tree, c_version=True)
+    _ = context.evaluate_differences(diff_tree, skip_containers_and_lists=True)
 
 
 @benchmark

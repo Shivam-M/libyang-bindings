@@ -81,33 +81,9 @@ class Context:
     def get_differences(self, first_node, second_node):
         return Node(_test.lib.get_differences(first_node._data, second_node._data), self)
 
-    def evaluate_differences(self, first_node, second_node, diff_node, c_version=False):
-        if c_version:
-            return json.loads(Test.evaluate_differences_c(first_node, second_node, diff_node))
-        changes = {}
-        for node in diff_node.get_following_nodes():
-            xpath = node._xpath
-            value_first = first_node.get_value_at_xpath(xpath)
-            value_second = second_node.get_value_at_xpath(xpath)
+    def evaluate_differences(self, diff_node, skip_containers_and_lists=False):
+        return json.loads(Test.evaluate_differences_c(diff_node, skip_containers_and_lists))
 
-            if value_first == value_second:
-                continue
-
-            changes[xpath] = {}
-
-            if value_first:
-                changes[xpath]["action"] = "removed"
-                changes[xpath]["old_value"] = value_first
-
-            if value_second:
-                changes[xpath]["action"] = "created"
-                changes[xpath]["new_value"] = value_second
-
-            if value_first and value_second:
-                changes[xpath]["action"] = "changed"
-
-        return changes
-    
     ## move create/add methods to leaflistnode
     def create_list_node(self, parent, name, values):
         if isinstance(values, (int, str)):
@@ -116,6 +92,7 @@ class Context:
         list_node = ffi.new("struct lyd_node**")
         _test.lib.lyd_new_list(parent._data, ffi.NULL, str2c(name), 0, list_node, *[str2c(value) for value in values])
         _test.lib.lyd_validate_all(list_node, self._data, 0, ffi.NULL)
+        # _test.lib.lyd_validate_module(list_node, list_node[0].schema.module, 0, ffi.NULL)
         return Node(list_node[0], self)
 
     def create_inner_node(self, parent, name):
@@ -135,7 +112,7 @@ class Node:
         self._context = context
         self._type = self._resolve_type()
         self.__value = None
-    
+
     # def __del__(self):
     #     self.free()
 
@@ -282,5 +259,5 @@ class Test:
     def print_nodes_recursively(node: Node):
         _test.lib.print_nodes_recursively(node._data)
 
-    def evaluate_differences_c(node: Node, node2: Node, node3: Node):
-        return c2str(_test.lib.evaluate_differences(node._data, node2._data, node3._data), free=True)
+    def evaluate_differences_c(diff_tree: Node, skip_containers_and_lists: bool = False):
+        return c2str(_test.lib.evaluate_differences(diff_tree._data, skip_containers_and_lists), free=True)
