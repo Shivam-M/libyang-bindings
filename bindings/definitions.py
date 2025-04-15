@@ -1,5 +1,6 @@
 import os
 import json
+from colorama import Fore, Back, Style, init
 from bindings import _test
 from bindings._test import ffi
 from typing import Union
@@ -135,7 +136,6 @@ class Node:
         if self._data:
             return NODE_TYPES.get(self._data.schema.nodetype, -1)
 
-
     def __setattr__(self, name: str, value: str):
         # if name in self.__dict__.keys():
         if name.startswith('_'):  # TODO: change this
@@ -261,3 +261,14 @@ class Test:
 
     def evaluate_differences_c(diff_tree: Node, skip_containers_and_lists: bool = False):
         return c2str(_test.lib.evaluate_differences(diff_tree._data, skip_containers_and_lists), free=True)
+
+    def print_differences(differences: dict):
+        init(autoreset=True)
+        for xpath, change in differences.items():
+            action = change["action"]
+            if action == "changed":
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.CYAN}{Back.BLACK} CHANGED {Back.RESET} {change["old_value"]} {Style.DIM}->{Style.NORMAL} {change["new_value"]}")
+            elif action == "removed":
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.RED}{Back.BLACK} REMOVED {Back.RESET} {change.get("old_value", "")}")
+            elif action == "created":
+                print(f"{xpath} {Style.DIM}-{Style.RESET_ALL} {Fore.GREEN}{Back.BLACK} CREATED {Back.RESET} {change.get("new_value", "")}")
