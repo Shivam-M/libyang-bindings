@@ -12,8 +12,8 @@ check-python:
 	fi
 
 setup: compile-libraries check-python
-	pyenv virtualenv $(PYTHON_VERSION) libyang-cffi-playground
-	pyenv local libyang-cffi-playground
+	pyenv virtualenv $(PYTHON_VERSION) libyang-bindings
+	pyenv local libyang-bindings
 	pip install -r extra/requirements.txt
 
 compile-libraries:  # libyang and cJSON

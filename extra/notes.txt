@@ -6,8 +6,8 @@ pip install -r requirements.txt
 
 # TODO: Get pyenv debug environment to work with valgrind instead of using python3-dbg
 # pyenv install --debug 3.13.0
-# pyenv virtualenv 3.13.0-debug libyang-cffi-playground-debug
-# pyenv activate libyang-cffi-playground-debug
+# pyenv virtualenv 3.13.0-debug libyang-bindings-debug
+# pyenv activate libyang-bindings-debug
 # export PYTHONMALLOC=malloc
 # valgrind --leak-check=full --show-leak-kinds=all --suppressions=valgrind-python.supp python bindings/test_own_bindings.py
 
