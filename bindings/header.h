@@ -225,6 +225,8 @@ LY_ERR lyd_validate_module(struct lyd_node **tree, const struct lys_module *modu
 LY_ERR lyd_print_all(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
 
+LY_ERR lyd_find_path(const struct lyd_node *ctx_node, const char *path, ly_bool output, struct lyd_node **match);
+
 // not exported?
 // LY_ERR lyd_diff_get_op(const struct lyd_node *diff_node, enum lyd_diff_op *op);
 // void lyd_diff_find_meta(const struct lyd_node *node, const char *name, struct lyd_meta **meta, struct lyd_attr **attr);
@@ -282,7 +284,6 @@ struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node);
 struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* second_node);
 struct lyd_node* get_next_node(struct lyd_node* node);
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath);
-struct lyd_node* get_sibling(struct lyd_node* node);
 
 char* evaluate_differences(struct lyd_node* diff_node, bool skip_containers_and_lists);
 void free_list_keys(struct ly_set* key_set);

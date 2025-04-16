@@ -226,13 +226,13 @@ class Node:
         child = _test.lib.lyd_child(self._data)
         while child:
             yield Node(child, self._context)
-            child = _test.lib.get_sibling(child)
+            child = child.next
 
     def get_children_cdata(self):
         child = _test.lib.lyd_child(self._data)
         while child:
             yield child
-            child = _test.lib.get_sibling(child)
+            child = child.next
 
     def get_child_by_name(self, name: str):
         for child in self.get_children_cdata():

@@ -8,10 +8,6 @@ struct lyd_node* get_differences(struct lyd_node* first_node, struct lyd_node* s
     return diff_node;
 }
 
-struct lyd_node* get_sibling(struct lyd_node* node) {
-    return node->next;
-}
-
 void print_nodes_recursively(struct lyd_node* node) {
     struct lyd_node* child;
 
@@ -62,16 +58,9 @@ struct lyd_node* get_next_node(struct lyd_node* node) {
 
 struct lyd_node* get_node_at_xpath(struct lyd_node* node, char* xpath) {
     if (node == NULL || xpath == NULL) return NULL;
-    struct ly_set* set;
+
     struct lyd_node* found_node = NULL;
-
-    lyd_find_xpath(node, xpath, &set);
-
-    if (set && set->count > 0) {
-        found_node = set->dnodes[0];
-    }
-
-    ly_set_free(set, NULL);
+    lyd_find_path(node, xpath, 0, &found_node);
 
     return found_node;
 }
@@ -193,10 +182,8 @@ struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node) {
         ly_set_new(&key_set);
 
         while (child) {
-            if (child->nodetype == LYS_LEAF) {
-                if (child->flags & LYS_KEY) {
-                    ly_set_add(key_set, child->name, 0, NULL);
-                }
+            if ((child->nodetype == LYS_LEAF) && (child->flags & LYS_KEY)) {
+                ly_set_add(key_set, child->name, 0, NULL);
             }
             child = child->next;
         }
@@ -209,9 +196,9 @@ struct ly_set* get_list_keys_from_data_node(const struct lyd_node* data_node) {
 
 void free_list_keys(struct ly_set* key_set) {
     if (key_set) {
-        for (uint32_t i = 0; i < key_set->count; i++) {
-            free(key_set->objs[i]);
-        }
+        // for (uint32_t i = 0; i < key_set->count; i++) {
+        //     free(key_set->objs[i]);
+        // }
         ly_set_free(key_set, NULL);
     }
 }
