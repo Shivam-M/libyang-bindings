@@ -1,4 +1,4 @@
-sudo apt-get install libpcre2-dev python3-dev gcc python3-cffi cmake --assume-yes
+sudo apt-get install libpcre2-dev python3-dev gcc python3-cffi cmake valgrind --assume-yes
 
 git submodule init
 git submodule update

@@ -1,6 +1,11 @@
 SHELL := /bin/bash
-PYTHON := $(shell source ~/.bashrc && pyenv which python)
 PYTHON_VERSION = 3.13.0
+
+ifdef USE_SYSTEM_PYTHON
+PYTHON := $(shell which python)
+else
+PYTHON := $(shell source ~/.bashrc && pyenv which python)
+endif
 
 export PYTHONPATH := $(PWD)
 
@@ -21,6 +26,12 @@ compile-libraries:  # libyang and cJSON
 
 build:
 	cd bindings && python builder.py
+
+docker-build:
+	docker build -t libyang-bindings .
+
+docker-run:
+	docker run -it -e USE_SYSTEM_PYTHON=1 libyang-bindings /bin/bash
 
 run-mixed-libyang-with-bindings: build
 	python extra/debug_mixed_libyang_python.py

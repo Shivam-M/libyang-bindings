@@ -6,6 +6,7 @@ fi
 SUBMODULE=$1
 
 cd $SUBMODULE
+rm -rf build
 mkdir build
 cd build
 
