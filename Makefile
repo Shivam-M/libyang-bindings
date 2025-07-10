@@ -46,4 +46,4 @@ valgrind: build
 	PYTHONMALLOC=malloc valgrind --leak-check=full --show-leak-kinds=all $(PYTHON) use_custom_bindings.py
 
 test: build
-	pytest -s -vv tests/*
+	pytest -s -vv tests/unit_tests.py

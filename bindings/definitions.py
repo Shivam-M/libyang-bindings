@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from colorama import Fore, Back, Style, init
 from bindings import _test
@@ -17,6 +18,12 @@ def c2str(c_string, free=False):
     return py_string
 
 
+class Settings:
+    def __init__(self):
+        self.TYPECAST_LEAF_NODE_VALUES = False
+        self.VALIDATE_AFTER_LIST_CREATION = False
+
+
 class NodeType(Enum):
     LEAF = 0
     LIST = 1
@@ -29,6 +36,54 @@ NODE_TYPES = {
     4: NodeType.LEAF,
     16: NodeType.LIST
 }
+
+
+class EasyLoad:  # QuickLoad, FastLoad, LazyLoad, SimpleLoad, YangLoader
+    """
+    Take in a .json or .xml filepath,
+    try to extract the yang model name,
+    load it into a context,
+    return the data tree.
+    """
+    @staticmethod
+    def load(filepath: str, module: str = None):
+        context = Context()
+        context.add_search_path("yang")
+
+        if not module:
+            module = EasyLoad.extract_module(filepath)
+
+        if not module:
+            del context
+            raise Exception(f"could not extract a yang model from {filepath}!!!")
+
+        context.load_module(module)
+        return context.load_data(filepath)
+
+    @staticmethod
+    def extract_module(filepath: str) -> str:
+        if filepath.endswith(".xml"):
+            return EasyLoad.try_to_extract_module_from_xml(filepath)
+        elif filepath.endswith(".json"):
+            return EasyLoad.try_to_extract_module_from_json(filepath)
+        else:
+            raise Exception("unknown file format [expected: .xml/.json]")  # TODO: look inside and try to work it out [ '<' = XML ] or [ '{' = JSON ]
+
+    @staticmethod
+    def try_to_extract_module_from_json(file_path: str) -> str:
+        with open(file_path, "r") as file:
+            try:
+                data = json.load(file)
+                return list(data.keys())[0].split(":")[0] if data else None
+            except:
+                return None
+
+    @staticmethod
+    def try_to_extract_module_from_xml(file_path: str) -> str:
+        with open(file_path, "r") as file:
+            for line in file:
+                if match := re.search(r'xmlns="([^"]+)"', line):
+                    return match.group(1).split("/")[-1]
 
 
 class Module:
@@ -86,7 +141,6 @@ class Context:
     def evaluate_differences(self, diff_node, skip_containers_and_lists=False):
         return json.loads(Test.evaluate_differences_c(diff_node, skip_containers_and_lists))
 
-    ## move create/add methods to leaflistnode
     def create_list_node(self, parent, name, values):
         if isinstance(values, (int, str)):
             values = (str(values),)
@@ -118,7 +172,12 @@ class Node:
         self._data = data
         self._context = context
         self._type = self._resolve_type()
+        # TODO: cache values below if worthwhile
         self.__value = None
+        self.__children = []
+        # these shouldn't change?
+        self.__name = ""
+        self.__xpath = ""
 
     # def __del__(self):
     #     self.free()
@@ -156,13 +215,19 @@ class Node:
         match name:
             case "_name":
                 return c2str(self._data.schema.name).replace('-', '_').lower()
+                # if not self.__name:
+                #     self.__name = c2str(self._data.schema.name).replace('-', '_').lower()
+                # return self.__name
             case "_xpath":
-                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=True)  # store instead?
+                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
+                # if not self.__xpath:
+                #     self.__xpath = c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
+                # return self.__xpath
             case "_value":
+                return c2str(_test.lib.lyd_get_value(self._data))
                 # if not self.__value:
                 #     self.__value = c2str(_test.lib.lyd_get_value(self._data))
                 # return self.__value
-                return c2str(_test.lib.lyd_get_value(self._data))
             case "_parent":
                 if parent_node_data := _test.lib.lyd_parent(self._data):
                     return Node(parent_node_data, self._context)
@@ -170,7 +235,7 @@ class Node:
             case _:
                 if node := self.get_child_by_name(name):
                     if node._type == NodeType.LEAF:
-                        return node._value
+                        return node._value  # TODO: cast the type of the value
                     return node
                 raise Exception("child does not exist...")
 
@@ -238,6 +303,8 @@ class Node:
         for child in self.get_children_cdata():
             child_name = c2str(child.schema.name).replace('-', '_').lower()
             if child_name == name:
+                if NODE_TYPES.get(child.schema.nodetype, -1) == NodeType.LIST:
+                    return ListNode(child, self._context)
                 return Node(child, self._context)
 
     # def get_child_by_name(self, name: str):  # either use this to get child leaf nodes or return if begins/ends with _ in getattr
@@ -251,23 +318,33 @@ class Node:
 
 class LeafNode(Node):
     def __init__(self, data, context: Context) -> None:
-        super(data, context)
+        super().__init__(data, context)
     
     def set_value(self, value: str):
         pass
 
 
-class LeafListNode(Node):
+class ListNode(Node):
     def __init__(self, data, context: Context) -> None:
-        super(data, context)
+        super().__init__(data, context)
 
     def __iter__(self):
-        yield None
+        for child in self._parent.get_children():
+            yield child
+
+    def append(self, values: Union[str, int, tuple, list]):
+        return self._context.create_list_node(self._parent, self._name, values)
+
+    def remove(self):
+        pass
+
+    def get(self):
+        return list(self._parent.get_children())
 
 
 class ContainerNode(Node):
     def __init__(self, data, context: Context) -> None:
-        super(data, context)
+        super().__init__(data, context)
 
     def __iter__(self):
         yield None
