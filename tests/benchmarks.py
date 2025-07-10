@@ -1,22 +1,43 @@
+import os
+import inspect
+from functools import wraps, partial
 from timeit import timeit
-from bindings.definitions import Context
+from bindings.definitions import Context, EasyLoad
 from ipaddress import IPv4Network
 
-CALL_COUNT = 100
-BENCHMARKS = {}
+CALL_COUNT = int(os.environ.get("CALL_COUNT", 100))
+benchmarks = {}
 
-def benchmark(method):
+
+def benchmark(method=None, skip=False):
+    if method is None:
+        return partial(benchmark, skip=skip)
+
+    if skip:
+        print(f"skip:  {method.__name__}")
+        return None
+
+    @wraps(method)
     def wrapper():
+        if len(inspect.signature(method).parameters) == 0:
+            return method()
         context = create_context()
         return method(context)
-    BENCHMARKS[method.__name__] = wrapper
+
+    benchmarks[method.__name__] = wrapper
     return wrapper
+
 
 def create_context():
     context = Context()
     context.add_search_path("yang")
     context.load_module("example")
     return context
+
+
+@benchmark
+def benchmark_overhead():
+    pass
 
 
 @benchmark
@@ -36,7 +57,7 @@ def benchmark_single_addition(context):
     data_tree.access_list.create("rule", "192.168.1.1")
 
 
-@benchmark
+@benchmark(skip=True)
 def benchmark_additions_validate_each(context):
     data_tree = context.load_data("data/example_data_3b.xml")
     for address in IPv4Network("192.168.1.0/24").hosts():
@@ -50,6 +71,13 @@ def benchmark_additions_validate_once(context):
     for address in IPv4Network("192.168.1.0/24").hosts():
         data_tree.access_list.create("rule", str(address)).action = "ALLOW"
     context.validate(data_tree._data)
+
+
+def benchmark_node_xpath_retrieval(context):
+    for _ in range(100):
+        data_tree = context.load_data("data/example_data_3b.xml")
+        access_list = data_tree.access_list
+        _ = access_list._xpath
 
 
 @benchmark
@@ -113,10 +141,16 @@ def benchmark_retrieve_leaf(context):
     _ = data_tree_1.name
 
 
+@benchmark
+def benchmark_quick_load_single_creation():
+    data_tree = EasyLoad.load("data/example_data_4.xml")
+    data_tree.mtu = 9000
+
+
 if __name__ == "__main__":
     print(f"* {CALL_COUNT=}")
     print(f"{"- name -":-<42} total ----- average -")
-    for name, method in BENCHMARKS.items():
+    for name, method in benchmarks.items():
         time_taken = timeit(method, number=CALL_COUNT)
         print(f"{name: <40} {time_taken:.6f}s | {time_taken / CALL_COUNT:.8f}s")
     print("-" * 64)
