@@ -61,6 +61,8 @@ LY_ERR lyd_parse_data(const struct ly_ctx *, struct lyd_node *, struct ly_in *, 
 
 #define LYD_VALUE_FIXED_MEM_SIZE 24
 
+#define LYS_NODE_HASH_COUNT 4
+
 LY_ERR ly_ctx_get_yanglib_data(const struct ly_ctx *, struct lyd_node **, const char *, ...);
 
 
@@ -201,6 +203,67 @@ struct lyd_value {
         void *dyn_mem;
         uint8_t fixed_mem[LYD_VALUE_FIXED_MEM_SIZE];
     };
+};
+
+typedef enum {
+    LY_TYPE_UNKNOWN = 0,
+    LY_TYPE_BINARY,
+    LY_TYPE_UINT8,
+    LY_TYPE_UINT16,
+    LY_TYPE_UINT32,
+    LY_TYPE_UINT64,
+    LY_TYPE_STRING,
+    LY_TYPE_BITS,
+    LY_TYPE_BOOL,
+    LY_TYPE_DEC64,
+    LY_TYPE_EMPTY,
+    LY_TYPE_ENUM,
+    LY_TYPE_IDENT,
+    LY_TYPE_INST,
+    LY_TYPE_LEAFREF,
+    LY_TYPE_UNION,
+    LY_TYPE_INT8,
+    LY_TYPE_INT16,
+    LY_TYPE_INT32,
+    LY_TYPE_INT64
+} LY_DATA_TYPE;
+
+#define LY_DATA_TYPE_COUNT 20
+
+struct lysc_type {
+    const char *name;
+    struct lysc_ext_instance *exts;
+    struct lyplg_type *plugin;
+    LY_DATA_TYPE basetype;
+    uint32_t refcount;
+};
+
+struct lysc_node_leaf {
+    union {
+        struct lysc_node node;
+
+        struct {
+            uint16_t nodetype;
+            uint16_t flags;
+            uint8_t hash[LYS_NODE_HASH_COUNT];
+            struct lys_module *module;
+            struct lysc_node *parent;
+            struct lysc_node *next;
+            struct lysc_node *prev;
+            const char *name;
+            const char *dsc;
+            const char *ref;
+            struct lysc_ext_instance *exts;
+            void *priv;
+        };
+    };
+
+    struct lysc_must *musts;
+    struct lysc_when **when;
+    struct lysc_type *type;
+
+    const char *units;
+    struct lyd_value *dflt;
 };
 
 // enum lyd_diff_op {

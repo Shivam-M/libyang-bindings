@@ -38,6 +38,14 @@ NODE_TYPES = {
 }
 
 
+DATA_TYPE_MAPPINGS = {
+    str: [_test.lib.LY_TYPE_STRING],
+    int: [_test.lib.LY_TYPE_UINT8, _test.lib.LY_TYPE_UINT16, _test.lib.LY_TYPE_UINT32, _test.lib.LY_TYPE_UINT64, _test.lib.LY_TYPE_INT8, _test.lib.LY_TYPE_INT16, _test.lib.LY_TYPE_INT32, _test.lib.LY_TYPE_INT64],
+    bool: [_test.lib.LY_TYPE_BOOL],
+    float: [_test.lib.LY_TYPE_DEC64],
+}
+
+
 class EasyLoad:  # QuickLoad, FastLoad, LazyLoad, SimpleLoad, YangLoader
     """
     Take in a .json or .xml filepath,
@@ -235,7 +243,8 @@ class Node:
             case _:
                 if node := self.get_child_by_name(name):
                     if node._type == NodeType.LEAF:
-                        return node._value  # TODO: cast the type of the value
+                        schema_leaf = ffi.cast("const struct lysc_node_leaf *", node._data.schema)
+                        return self.typecast_leaf_node_data_type(schema_leaf.type.basetype, node._value)
                     return node
                 raise Exception("child does not exist...")
 
@@ -314,6 +323,15 @@ class Node:
 
     def create(self, name: str, values: Union[str, int, tuple, list]):  # replace with *args?
         return self._context.create_list_node(self, name, values)
+
+    def typecast_leaf_node_data_type(self, base_type, value):
+        for casting_method, data_types in DATA_TYPE_MAPPINGS.items():
+            if base_type in data_types:
+                if casting_method is bool:
+                    return value.lower() == "true"  # TODO: validate on the way in, maybe replace with != false
+                else:
+                    return casting_method(value)
+        return value
 
 
 class LeafNode(Node):

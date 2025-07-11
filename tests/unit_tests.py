@@ -31,7 +31,19 @@ def test_create_node_value(context):
     interface.mtu = 1234
 
     # Assert
-    assert interface.mtu == "1234"  # TODO: Add type casting based on data type in schema
+    assert interface.mtu == 1234
+
+
+def test_cast_node_value(context):
+    # Arrange
+    data_tree = context.load_data("data/example_data_2.xml")
+    interface = data_tree
+
+    # Act
+    interface.shutdown = "false"
+
+    # Assert
+    assert interface.shutdown == False
 
 
 def test_retrieve_node_xpath(context):
