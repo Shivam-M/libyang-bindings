@@ -1,9 +1,9 @@
 import os
 import re
+import io
 import json
 from colorama import Fore, Back, Style, init
-from bindings import _test
-from bindings._test import ffi
+from bindings._test import ffi, lib
 from typing import Union
 from enum import Enum
 
@@ -13,8 +13,8 @@ def str2c(py_string):
 
 def c2str(c_string, free=False):
     py_string = ffi.string(c_string).decode("utf-8") if c_string != ffi.NULL else None
-    if (free and py_string):
-        _test.lib.free(c_string)
+    if free and py_string:
+        lib.free(c_string)  # share same memory?
     return py_string
 
 
@@ -39,10 +39,10 @@ NODE_TYPES = {
 
 
 DATA_TYPE_MAPPINGS = {
-    str: [_test.lib.LY_TYPE_STRING],
-    int: [_test.lib.LY_TYPE_UINT8, _test.lib.LY_TYPE_UINT16, _test.lib.LY_TYPE_UINT32, _test.lib.LY_TYPE_UINT64, _test.lib.LY_TYPE_INT8, _test.lib.LY_TYPE_INT16, _test.lib.LY_TYPE_INT32, _test.lib.LY_TYPE_INT64],
-    bool: [_test.lib.LY_TYPE_BOOL],
-    float: [_test.lib.LY_TYPE_DEC64],
+    str: [lib.LY_TYPE_STRING],
+    int: [lib.LY_TYPE_UINT8, lib.LY_TYPE_UINT16, lib.LY_TYPE_UINT32, lib.LY_TYPE_UINT64, lib.LY_TYPE_INT8, lib.LY_TYPE_INT16, lib.LY_TYPE_INT32, lib.LY_TYPE_INT64],
+    bool: [lib.LY_TYPE_BOOL],
+    float: [lib.LY_TYPE_DEC64],
 }
 
 
@@ -58,8 +58,7 @@ class EasyLoad:  # QuickLoad, FastLoad, LazyLoad, SimpleLoad, YangLoader
         context = Context()
         context.add_search_path("yang")
 
-        if not module:
-            module = EasyLoad.extract_module(filepath)
+        module = module or EasyLoad.extract_module(filepath)
 
         if not module:
             del context
@@ -99,16 +98,22 @@ class Module:
         self._data = data
         self._context = context
 
-    def print(self, output=os.sys.stdout):
+    def print(self, output=os.sys.stderr, fileno=None):
         ly_out = ffi.new("struct ly_out**")
-        _test.lib.ly_out_new_fd(output.fileno(), ly_out)
-        _test.lib.lys_print_module(ly_out[0], self._data, _test.lib.LYS_OUT_TREE, 0, 0)
+        fd = output.fileno() if fileno is None else fileno
+        lib.ly_out_new_fd(fd, ly_out)
+        lib.lys_print_module(ly_out[0], self._data, lib.LYS_OUT_TREE, 0, 0)
+
+    def __str__(self):
+        string_io = io.StringIO()
+        self.print(output=string_io, fileno=1)
+        return string_io.getvalue()
 
 
 class Context:
     def __init__(self) -> None:
         context_pointer = ffi.new("struct ly_ctx**")
-        _test.lib.ly_ctx_new(ffi.NULL, _test.lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
+        lib.ly_ctx_new(ffi.NULL, lib.LY_CTX_NO_YANGLIBRARY, context_pointer)
         self._data = context_pointer[0]
         self.validate_after_list_creation = True
 
@@ -117,26 +122,26 @@ class Context:
 
     def free(self):
         if self._data:
-            _test.lib.ly_ctx_destroy(self._data)
+            lib.ly_ctx_destroy(self._data)
             self._data = None
 
     def test(self):
-        _test.lib.test()
+        lib.test()
     
     def add_search_path(self, search_path: str):
-        _test.lib.ly_ctx_set_searchdir(self._data, str2c(search_path))
+        lib.ly_ctx_set_searchdir(self._data, str2c(search_path))
     
     def load_module(self, module_path: str) -> Module:
-        return Module(_test.lib.ly_ctx_load_module(self._data, str2c(module_path), ffi.NULL, ffi.NULL), self)
+        return Module(lib.ly_ctx_load_module(self._data, str2c(module_path), ffi.NULL, ffi.NULL), self)
     
     def load_data(self, data_path: str):
         top_node = ffi.new("struct lyd_node**")
         ly_in = ffi.new("struct ly_in**")
-        data_format = _test.lib.LYD_JSON if data_path.endswith("json") else _test.lib.LYD_XML
+        data_format = lib.LYD_JSON if data_path.endswith("json") else lib.LYD_XML
 
-        _test.lib.ly_in_new_filepath(str2c(data_path), 0, ly_in)
-        _test.lib.lyd_parse_data(self._data, ffi.NULL, ly_in[0], data_format, 0, 0, top_node)
-        _test.lib.ly_in_free(ly_in[0], 0)
+        lib.ly_in_new_filepath(str2c(data_path), 0, ly_in)
+        lib.lyd_parse_data(self._data, ffi.NULL, ly_in[0], data_format, 0, 0, top_node)
+        lib.ly_in_free(ly_in[0], 0)
 
         return Node(top_node[0], self)
 
@@ -144,7 +149,7 @@ class Context:
         pass
 
     def get_differences(self, first_node, second_node):
-        return Node(_test.lib.get_differences(first_node._data, second_node._data), self)
+        return Node(lib.get_differences(first_node._data, second_node._data), self)
 
     def evaluate_differences(self, diff_node, skip_containers_and_lists=False):
         return json.loads(Test.evaluate_differences_c(diff_node, skip_containers_and_lists))
@@ -154,7 +159,7 @@ class Context:
             values = (str(values),)
 
         list_node = ffi.new("struct lyd_node**")
-        _test.lib.lyd_new_list(parent._data, ffi.NULL, str2c(name), 0, list_node, *[str2c(value) for value in values])
+        lib.lyd_new_list(parent._data, ffi.NULL, str2c(name), 0, list_node, *[str2c(value) for value in values])
 
         if self.validate_after_list_creation:  # validate after to create default nodes
             self.validate(list_node[0])
@@ -162,16 +167,16 @@ class Context:
         return Node(list_node[0], self)
 
     def validate(self, node):  # todo: move some methods to Node class
-        _test.lib.lyd_validate_all(ffi.new("struct lyd_node**", node), self._data, 0, ffi.NULL)
+        lib.lyd_validate_all(ffi.new("struct lyd_node**", node), self._data, 0, ffi.NULL)
 
     def create_inner_node(self, parent, name):
         inner_node = ffi.new("struct lyd_node**")
-        _test.lib.lyd_new_inner(parent._data, ffi.NULL, str2c(name), 0, inner_node)
+        lib.lyd_new_inner(parent._data, ffi.NULL, str2c(name), 0, inner_node)
         return Node(inner_node[0], self)
 
     def create_terminal_node(self, parent, name, value):
         terminal_node = ffi.new("struct lyd_node**")
-        _test.lib.lyd_new_term(parent._data, ffi.NULL, str2c(name), str2c(value), 0, terminal_node)
+        lib.lyd_new_term(parent._data, ffi.NULL, str2c(name), str2c(value), 0, terminal_node)
         return Node(terminal_node[0], self)
 
 
@@ -192,14 +197,14 @@ class Node:
 
     def print_tree(self, output=os.sys.stdout, all=True):
         ly_out = ffi.new("struct ly_out**")
-        _test.lib.ly_out_new_fd(output.fileno(), ly_out)
-        _test.lib.lyd_print_tree(ly_out[0], self._data, _test.lib.LYD_XML, 0 if not all else 0x20)
+        lib.ly_out_new_fd(output.fileno(), ly_out)
+        lib.lyd_print_tree(ly_out[0], self._data, lib.LYD_XML, 0 if not all else 0x20)
 
     def free(self):
         if self._data:
             if self.is_root():
                 # print(f"Attempt to free: {self}")
-                _test.lib.lyd_free_all(self._data)
+                lib.lyd_free_all(self._data)
                 self._data = None
 
     def is_root(self):
@@ -215,7 +220,7 @@ class Node:
             self.__dict__[name] = value
         else:
             if name in self.get_children():
-                _test.lib.lyd_change_term(self.get_child_by_name(name)._data, str2c(value))
+                lib.lyd_change_term(self.get_child_by_name(name)._data, str2c(value))
             else:
                 self._context.create_terminal_node(self, name, value)
 
@@ -227,17 +232,17 @@ class Node:
                 #     self.__name = c2str(self._data.schema.name).replace('-', '_').lower()
                 # return self.__name
             case "_xpath":
-                return c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
+                return c2str(lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
                 # if not self.__xpath:
-                #     self.__xpath = c2str(_test.lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
+                #     self.__xpath = c2str(lib.lyd_path(self._data, 0, ffi.NULL, 0), free=False)
                 # return self.__xpath
             case "_value":
-                return c2str(_test.lib.lyd_get_value(self._data))
+                return c2str(lib.lyd_get_value(self._data))
                 # if not self.__value:
-                #     self.__value = c2str(_test.lib.lyd_get_value(self._data))
+                #     self.__value = c2str(lib.lyd_get_value(self._data))
                 # return self.__value
             case "_parent":
-                if parent_node_data := _test.lib.lyd_parent(self._data):
+                if parent_node_data := lib.lyd_parent(self._data):
                     return Node(parent_node_data, self._context)
                 return
             case _:
@@ -249,13 +254,13 @@ class Node:
                 raise Exception("child does not exist...")
 
     def __getitem__(self, name: Union[str, int, tuple]):
-        key_set = _test.lib.get_list_keys_from_data_node(self._data)
+        key_set = lib.get_list_keys_from_data_node(self._data)
         list_keys = []
 
         for x in range(key_set.count):
             list_keys.append(c2str(ffi.cast("char*", key_set.objs[x])))
 
-        _test.lib.ly_set_free(key_set, ffi.NULL)
+        lib.ly_set_free(key_set, ffi.NULL)
 
         if isinstance(name, (int, str)):
             name = (str(name),)
@@ -278,32 +283,30 @@ class Node:
         return f"{self._xpath} = {self._value}"
 
     def print(self):
-        _test.lib.print_node(self._data)
+        lib.print_node(self._data)
 
     def get_list_keys(self):
-        _test.lib.get_list_keys_from_data_node(self._data)
+        lib.get_list_keys_from_data_node(self._data)
 
     def get_following_nodes(self):
         next_node = self._data
-        while (next_node):
-            if next_node := _test.lib.get_next_node(next_node):
+        while next_node:
+            if next_node := lib.get_next_node(next_node):
                 yield Node(next_node, self._context)
 
     def get_node_at_xpath(self, xpath: str):
-        return Node(_test.lib.get_node_at_xpath(self._data, str2c(xpath)), self._context)
+        return Node(lib.get_node_at_xpath(self._data, str2c(xpath)), self._context)
 
     def get_value_at_xpath(self, xpath: str):
         node = self.get_node_at_xpath(xpath)
         return node._value if node else None
 
     def get_children(self):
-        child = _test.lib.lyd_child(self._data)
-        while child:
+        for child in self.get_children_cdata():
             yield Node(child, self._context)
-            child = child.next
 
     def get_children_cdata(self):
-        child = _test.lib.lyd_child(self._data)
+        child = lib.lyd_child(self._data)
         while child:
             yield child
             child = child.next
@@ -370,10 +373,10 @@ class ContainerNode(Node):
 
 class Test:
     def print_nodes_recursively(node: Node):
-        _test.lib.print_nodes_recursively(node._data)
+        lib.print_nodes_recursively(node._data)
 
     def evaluate_differences_c(diff_tree: Node, skip_containers_and_lists: bool = False):
-        return c2str(_test.lib.evaluate_differences(diff_tree._data, skip_containers_and_lists), free=True)
+        return c2str(lib.evaluate_differences(diff_tree._data, skip_containers_and_lists), free=True)
 
     def print_differences(differences: dict):
         init(autoreset=True)
