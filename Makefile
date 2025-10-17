@@ -1,10 +1,9 @@
-SHELL := /bin/bash
 PYTHON_VERSION = 3.13.0
 
 ifdef USE_SYSTEM_PYTHON
 PYTHON := $(shell which python)
 else
-PYTHON := $(shell source ~/.bashrc && pyenv which python)
+PYTHON := $(shell pyenv which python)
 endif
 
 export PYTHONPATH := $(PWD)
@@ -16,10 +15,12 @@ check-python:
 		pyenv install $(PYTHON_VERSION); \
 	fi
 
-setup: compile-libraries check-python
+configure-pyenv:
 	pyenv virtualenv $(PYTHON_VERSION) libyang-bindings
 	pyenv local libyang-bindings
 	pip install -r extra/requirements.txt
+
+setup: compile-libraries check-python configure-pyenv
 
 compile-libraries:  # libyang and cJSON
 	extra/build_libraries.sh

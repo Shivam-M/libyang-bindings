@@ -38,3 +38,20 @@ struct diff_result get_diff_result2(struct lyd_node* node) {
     }
     return diff;
 }
+
+### MAC SETUP
+
+# avoid conflicts with libyang1
+CMAKE_INSTALL_PREFIX=/usr/local/libyang3 make compile-libraries
+
+# for builder.py to find libyang3 libraries if installed in the folder above
+export EXTRA_LIBYANG_LIB_DIRS=/usr/local/libyang3/lib
+export EXTRA_LIBYANG_INCLUDE_DIRS=/usr/local/libyang3/include
+
+if not using
+export CPPFLAGS="-I/opt/homebrew/include"
+export LDFLAGS="-L/opt/homebrew/lib"
+
+then add as such
+export EXTRA_LIBYANG_LIB_DIRS=/usr/local/libyang3/lib:/opt/homebrew/lib
+export EXTRA_LIBYANG_INCLUDE_DIRS=/usr/local/libyang3/include:/opt/homebrew/include"
